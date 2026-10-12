@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "Sistema de inventario y ventas para la Farmacia Regalo de Dios (funciona con y sin internet)",
-  "author": "Diana Sofía Gálvez Barreno",
+  "author": "SofiGalvez",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
