@@ -16,6 +16,7 @@ import { traducirError } from '../servicios/errores';
 import { useUsuarios } from '../hooks/useDatos';
 import { usePerfil } from '../hooks/useSesion';
 import { useConexion } from '../hooks/useConexion';
+import Icono from '../componentes/Icono';
 
 export default function PaginaUsuarios() {
   const perfil = usePerfil();
@@ -39,7 +40,7 @@ export default function PaginaUsuarios() {
   return (
     <div className="space-y-4">
       <button onClick={() => setCreando(true)} className={claseBotonPrincipal}>
-        👤 Crear usuario
+        <span className="inline-flex items-center justify-center gap-2"><Icono nombre="usuarioMas" /> Crear usuario</span>
       </button>
 
       <div className={claseTarjeta}>
@@ -131,7 +132,7 @@ function ModalCrearUsuario({ onCerrar }: { onCerrar: () => void }) {
   };
 
   return (
-    <Modal titulo="👤 Nuevo usuario" onCerrar={onCerrar}>
+    <Modal titulo="Nuevo usuario" onCerrar={onCerrar}>
       {!enLinea && (
         <p className="mb-3 rounded-lg bg-amber-50 p-2.5 text-xs font-medium text-amber-800">
           Para crear usuarios se necesita internet.

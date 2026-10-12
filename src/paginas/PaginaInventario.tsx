@@ -16,6 +16,7 @@ import { mostrarAviso } from '../servicios/avisos';
 import { useProductos } from '../hooks/useDatos';
 import { usePerfil } from '../hooks/useSesion';
 import PaginaProductoFormulario from './PaginaProductoFormulario';
+import Icono from '../componentes/Icono';
 
 type Filtro = 'todos' | 'stock_bajo' | 'por_vencer' | 'vencidos';
 
@@ -92,7 +93,7 @@ export default function PaginaInventario() {
 
       <input
         type="search"
-        placeholder="🔍 Buscar por nombre, componente o laboratorio…"
+        placeholder="Buscar por nombre, componente o laboratorio…"
         className={`${claseInput} p-3 shadow-sm`}
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
@@ -100,7 +101,7 @@ export default function PaginaInventario() {
 
       {esAdmin && (
         <button onClick={() => setVista({ tipo: 'nuevo' })} className={claseBotonPrincipal}>
-          ➕ Agregar medicamento
+          <span className="inline-flex items-center justify-center gap-2"><Icono nombre="mas" /> Agregar medicamento</span>
         </button>
       )}
 
@@ -239,10 +240,10 @@ function TarjetaProducto(props: {
       {esAdmin && (
         <div className="mt-3 flex gap-2 border-t border-slate-100 pt-2">
           <button onClick={props.onEditar} className="flex-1 rounded-lg py-1.5 text-xs font-semibold text-slate-600 active:bg-slate-100">
-            ✏️ Editar
+            <span className="inline-flex items-center justify-center gap-1.5"><Icono nombre="editar" className="h-4 w-4" /> Editar</span>
           </button>
           <button onClick={props.onEliminar} className="flex-1 rounded-lg py-1.5 text-xs font-semibold text-red-600 active:bg-red-50">
-            🗑️ Eliminar
+            <span className="inline-flex items-center justify-center gap-1.5"><Icono nombre="basura" className="h-4 w-4" /> Eliminar</span>
           </button>
         </div>
       )}
@@ -269,7 +270,7 @@ function ModalReabastecer({ producto, onCerrar }: { producto: Producto; onCerrar
   };
 
   return (
-    <Modal titulo="📦 Reabastecer stock" onCerrar={onCerrar}>
+    <Modal titulo="Reabastecer stock" onCerrar={onCerrar}>
       <p className="font-semibold text-slate-700">{producto.nombre}</p>
       <p className="mb-4 text-xs text-slate-400">
         Stock actual: <b>{producto.stock} u.</b> · Vence: {formatoFechaTexto(producto.vencimiento)}

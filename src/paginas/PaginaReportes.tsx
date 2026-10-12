@@ -18,6 +18,7 @@ import {
 } from '../logica/reportes';
 import { descargarReporteInventario, descargarReporteVentas } from '../servicios/reportesPdf';
 import { useProductos, useVentas } from '../hooks/useDatos';
+import Icono from '../componentes/Icono';
 
 type Reporte = 'ventas' | 'inventario';
 
@@ -33,7 +34,7 @@ export default function PaginaReportes() {
             onClick={() => setReporte(r)}
             className={`rounded-lg py-2 text-sm font-bold ${reporte === r ? 'bg-white text-blue-600 shadow' : 'text-slate-500'}`}
           >
-            {r === 'ventas' ? '💵 Ventas' : '📦 Inventario'}
+            {r === 'ventas' ? 'Ventas' : 'Inventario'}
           </button>
         ))}
       </div>
@@ -108,12 +109,12 @@ function ReporteVentas() {
         disabled={ventas.length === 0}
         className={claseBotonPrincipal}
       >
-        📄 Descargar reporte de ventas (PDF)
+        <span className="inline-flex items-center justify-center gap-2"><Icono nombre="descargar" /> Descargar reporte de ventas (PDF)</span>
       </button>
 
       {resumen.masVendidos.length > 0 && (
         <div className={claseTarjeta}>
-          <h3 className={claseTituloSeccion}>🏆 Más vendidos</h3>
+          <h3 className={claseTituloSeccion}>Más vendidos</h3>
           {resumen.masVendidos.map((p, i) => (
             <div key={p.nombre} className="flex justify-between py-1 text-sm">
               <span>
@@ -172,14 +173,14 @@ function ReporteInventario() {
         disabled={productos.length === 0}
         className={claseBotonPrincipal}
       >
-        📄 Descargar reporte de inventario (PDF)
+        <span className="inline-flex items-center justify-center gap-2"><Icono nombre="descargar" /> Descargar reporte de inventario (PDF)</span>
       </button>
 
       {cargando && <p className="text-center text-sm text-slate-400">Cargando…</p>}
 
-      <ListaAlertas titulo="🔴 Vencidos" productos={resumen.alertas.vencidos} />
-      <ListaAlertas titulo="🟠 Por vencer (próximos 3 meses)" productos={resumen.alertas.porVencer} />
-      <ListaAlertas titulo="📉 Stock bajo o agotado" productos={resumen.alertas.stockBajo} />
+      <ListaAlertas titulo="Vencidos" productos={resumen.alertas.vencidos} />
+      <ListaAlertas titulo="Por vencer (próximos 3 meses)" productos={resumen.alertas.porVencer} />
+      <ListaAlertas titulo="Stock bajo o agotado" productos={resumen.alertas.stockBajo} />
     </div>
   );
 }
@@ -191,7 +192,7 @@ function ListaAlertas({ titulo, productos }: { titulo: string; productos: Produc
         {titulo} ({productos.length})
       </h3>
       {productos.length === 0 ? (
-        <p className="text-sm text-slate-400">Sin alertas ✅</p>
+        <p className="text-sm text-slate-400">Sin alertas</p>
       ) : (
         <div className="divide-y divide-slate-100">
           {productos.map((p) => (

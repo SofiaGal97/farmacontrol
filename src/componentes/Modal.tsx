@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Icono from './Icono';
 
 interface ModalProps {
   titulo: string;
@@ -22,7 +23,7 @@ export default function Modal({ titulo, onCerrar, children }: ModalProps) {
         <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-2">
           <h3 className="text-lg font-bold text-slate-800">{titulo}</h3>
           <button onClick={onCerrar} className="p-1 text-lg text-slate-400" aria-label="Cerrar">
-            ✕
+            <Icono nombre="cerrar" className="h-5 w-5" />
           </button>
         </div>
         {children}

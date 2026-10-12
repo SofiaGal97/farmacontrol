@@ -1,20 +1,21 @@
 import type { Rol } from '../modelos/tipos';
+import Icono, { type NombreIcono } from './Icono';
 
 export type Pestana = 'inventario' | 'vender' | 'reportes' | 'usuarios' | 'bitacora';
 
 interface OpcionMenu {
   id: Pestana;
-  icono: string;
+  icono: NombreIcono;
   texto: string;
   soloAdmin: boolean;
 }
 
 const OPCIONES: OpcionMenu[] = [
-  { id: 'inventario', icono: '📦', texto: 'Inventario', soloAdmin: false },
-  { id: 'vender', icono: '🛒', texto: 'Vender', soloAdmin: false },
-  { id: 'reportes', icono: '📊', texto: 'Reportes', soloAdmin: true },
-  { id: 'usuarios', icono: '👥', texto: 'Usuarios', soloAdmin: true },
-  { id: 'bitacora', icono: '📝', texto: 'Bitácora', soloAdmin: true },
+  { id: 'inventario', icono: 'paquete', texto: 'Inventario', soloAdmin: false },
+  { id: 'vender', icono: 'carrito', texto: 'Vender', soloAdmin: false },
+  { id: 'reportes', icono: 'grafica', texto: 'Reportes', soloAdmin: true },
+  { id: 'usuarios', icono: 'usuarios', texto: 'Usuarios', soloAdmin: true },
+  { id: 'bitacora', icono: 'bitacora', texto: 'Bitácora', soloAdmin: true },
 ];
 
 /** Pestañas que puede ver cada rol */
@@ -43,7 +44,7 @@ export default function MenuInferior({ rol, activa, onCambiar }: MenuInferiorPro
               activa === opcion.id ? 'text-blue-600' : 'text-slate-400'
             }`}
           >
-            <span className="text-lg">{opcion.icono}</span>
+            <Icono nombre={opcion.icono} className="h-6 w-6" />
             <span className="mt-0.5">{opcion.texto}</span>
           </button>
         ))}

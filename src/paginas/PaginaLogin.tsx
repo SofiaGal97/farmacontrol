@@ -17,6 +17,7 @@ import {
 import { traducirError } from '../servicios/errores';
 import { validarNuevoUsuario } from '../logica/validaciones';
 import { mostrarAviso } from '../servicios/avisos';
+import Icono from '../componentes/Icono';
 
 type Modo = 'entrar' | 'recuperar' | 'primerAdmin';
 
@@ -82,7 +83,9 @@ export default function PaginaLogin() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-blue-600 to-blue-800 p-4">
       <div className="mb-6 text-center text-white">
-        <div className="text-5xl">💊</div>
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-lg">
+          <Icono nombre="logo" className="h-10 w-10" />
+        </div>
         <h1 className="mt-2 text-2xl font-black">FarmaControl</h1>
         <p className="text-sm opacity-90">Farmacia "Regalo de Dios"</p>
       </div>
@@ -148,8 +151,8 @@ export default function PaginaLogin() {
 
         <div className="space-y-2 text-center text-sm">
           {modo !== 'entrar' && (
-            <button type="button" onClick={() => cambiarModo('entrar')} className="text-blue-600">
-              ← Volver a iniciar sesión
+            <button type="button" onClick={() => cambiarModo('entrar')} className="inline-flex items-center gap-1 text-blue-600">
+              <Icono nombre="volver" className="h-4 w-4" /> Volver a iniciar sesión
             </button>
           )}
           {modo === 'entrar' && (
@@ -166,7 +169,7 @@ export default function PaginaLogin() {
 
         {configuracion === 'error' && (
           <p className="rounded-lg bg-amber-50 p-2.5 text-xs text-amber-800">
-            ⚠️ No se pudo conectar con la base de datos. Revisa que en Firebase esté creada la base de
+            No se pudo conectar con la base de datos. Revisa que en Firebase esté creada la base de
             datos Firestore y publicadas las reglas de seguridad.
           </p>
         )}

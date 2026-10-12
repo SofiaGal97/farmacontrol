@@ -69,7 +69,7 @@ export default function PaginaProductoFormulario({ productoAEditar, onTerminar }
   return (
     <form onSubmit={manejarGuardar} className={`${claseTarjeta} space-y-4`}>
       <h2 className="text-lg font-bold text-slate-800">
-        {editando ? '✏️ Editar medicamento' : '➕ Registrar medicamento'}
+        {editando ? 'Editar medicamento' : 'Registrar medicamento'}
       </h2>
 
       <Campo etiqueta="Nombre comercial" obligatorio>

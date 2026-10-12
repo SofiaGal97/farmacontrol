@@ -7,17 +7,18 @@ import { useState } from 'react';
 import { claseInput, claseTarjeta, claseTituloSeccion } from '../componentes/estilos';
 import { formatoFechaHora, normalizarTexto } from '../logica/formato';
 import { useBitacora } from '../hooks/useDatos';
+import Icono, { type NombreIcono } from '../componentes/Icono';
 
-const ICONOS: Record<string, string> = {
-  Venta: '💵',
-  'Producto creado': '➕',
-  'Producto editado': '✏️',
-  'Producto eliminado': '🗑️',
-  Reabastecimiento: '📦',
-  'Usuario creado': '👤',
-  'Rol cambiado': '🔑',
-  'Usuario activado': '✅',
-  'Usuario desactivado': '⛔',
+const ICONOS: Record<string, NombreIcono> = {
+  Venta: 'dinero',
+  'Producto creado': 'mas',
+  'Producto editado': 'editar',
+  'Producto eliminado': 'basura',
+  Reabastecimiento: 'paquete',
+  'Usuario creado': 'usuarioMas',
+  'Rol cambiado': 'llave',
+  'Usuario activado': 'activado',
+  'Usuario desactivado': 'bloqueado',
 };
 
 export default function PaginaBitacora() {
@@ -36,7 +37,7 @@ export default function PaginaBitacora() {
     <div className="space-y-4">
       <input
         type="search"
-        placeholder="🔍 Buscar por acción, producto o usuario…"
+        placeholder="Buscar por acción, producto o usuario…"
         className={claseInput}
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
@@ -50,7 +51,9 @@ export default function PaginaBitacora() {
         <div className="divide-y divide-slate-100">
           {visibles.map((r) => (
             <div key={r.id} className="flex gap-3 py-2.5">
-              <span className="text-lg">{ICONOS[r.accion] ?? '•'}</span>
+              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                <Icono nombre={ICONOS[r.accion] ?? 'bitacora'} className="h-4 w-4" />
+              </span>
               <div className="min-w-0 flex-1">
                 <div className="flex justify-between gap-2">
                   <span className="text-sm font-bold text-slate-700">{r.accion}</span>

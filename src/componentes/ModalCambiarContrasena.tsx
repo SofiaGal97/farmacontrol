@@ -36,7 +36,7 @@ export default function ModalCambiarContrasena({ onCerrar }: { onCerrar: () => v
   };
 
   return (
-    <Modal titulo="🔑 Cambiar mi contraseña" onCerrar={onCerrar}>
+    <Modal titulo="Cambiar mi contraseña" onCerrar={onCerrar}>
       {!enLinea && (
         <p className="mb-3 rounded-lg bg-amber-50 p-2.5 text-xs font-medium text-amber-800">
           Para cambiar la contraseña se necesita internet.

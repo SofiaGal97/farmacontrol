@@ -20,6 +20,7 @@ import PaginaVenta from './paginas/PaginaVenta';
 import PaginaReportes from './paginas/PaginaReportes';
 import PaginaUsuarios from './paginas/PaginaUsuarios';
 import PaginaBitacora from './paginas/PaginaBitacora';
+import Icono from './componentes/Icono';
 
 export default function App() {
   return (
@@ -62,7 +63,7 @@ function SinAcceso({ desactivado }: { desactivado: boolean }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
       <div className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 text-center shadow-xl">
-        <div className="text-4xl">🔒</div>
+        <Icono nombre="candado" className="mx-auto h-12 w-12 text-slate-400" />
         <h2 className="text-lg font-bold text-slate-800">
           {desactivado ? 'Tu usuario está desactivado' : 'No se encontró tu perfil'}
         </h2>

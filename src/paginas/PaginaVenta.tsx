@@ -13,6 +13,7 @@ import { registrarVenta } from '../servicios/ventas';
 import { mostrarAviso } from '../servicios/avisos';
 import { useProductos } from '../hooks/useDatos';
 import { usePerfil } from '../hooks/useSesion';
+import Icono from '../componentes/Icono';
 
 export default function PaginaVenta() {
   const perfil = usePerfil();
@@ -37,11 +38,11 @@ export default function PaginaVenta() {
   // ---- Canasta ----
   const agregarAlCarrito = (producto: Producto) => {
     if (estadoVencimiento(producto) === 'vencido') {
-      mostrarAviso(`⚠️ ${producto.nombre} está VENCIDO. No se puede vender.`, 'error');
+      mostrarAviso(`${producto.nombre} está VENCIDO. No se puede vender.`, 'error');
       return;
     }
     if (producto.stock <= 0) {
-      mostrarAviso(`⚠️ ${producto.nombre} está agotado.`, 'error');
+      mostrarAviso(`${producto.nombre} está agotado.`, 'error');
       return;
     }
 
@@ -95,7 +96,7 @@ export default function PaginaVenta() {
       productos,
       perfil,
     );
-    mostrarAviso(`✅ Venta registrada: ${formatoQuetzales(resultado.total)}`);
+    mostrarAviso(`Venta registrada: ${formatoQuetzales(resultado.total)}`);
     setCarrito([]);
   };
 
@@ -144,7 +145,7 @@ export default function PaginaVenta() {
 
       {/* 2. Canasta */}
       <div className={claseTarjeta}>
-        <h2 className={claseTituloSeccion}>🛒 Canasta ({lineas.length})</h2>
+        <h2 className={claseTituloSeccion}>Canasta ({lineas.length})</h2>
 
         {lineas.length === 0 ? (
           <p className="py-6 text-center text-sm text-slate-400">Busca un producto arriba para agregarlo.</p>
@@ -168,8 +169,8 @@ export default function PaginaVenta() {
                   <BotonCantidad onClick={() => cambiarCantidad(item.productoId, 1)} deshabilitado={item.cantidad >= producto.stock}>
                     +
                   </BotonCantidad>
-                  <button onClick={() => quitarDelCarrito(item.productoId)} className="ml-1 p-1 text-sm" aria-label="Quitar">
-                    🗑️
+                  <button onClick={() => quitarDelCarrito(item.productoId)} className="ml-1 p-1 text-red-500" aria-label="Quitar">
+                    <Icono nombre="basura" className="h-5 w-5" />
                   </button>
                 </div>
               </div>
@@ -186,7 +187,7 @@ export default function PaginaVenta() {
                 disabled={problemas.length > 0}
                 className="w-full rounded-xl bg-green-600 p-3.5 text-base font-black text-white shadow-lg transition-all hover:bg-green-700 active:scale-[0.98] disabled:opacity-50"
               >
-                💵 Registrar y cobrar venta
+                <span className="inline-flex items-center justify-center gap-2"><Icono nombre="dinero" /> Registrar y cobrar venta</span>
               </button>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { claseInput } from './estilos';
+import Icono from './Icono';
 
 interface InputContrasenaProps {
   valor: string;
@@ -32,7 +33,7 @@ export default function InputContrasena({ valor, onCambiar, autoComplete = 'curr
         aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
         title={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
       >
-        {visible ? '🙈' : '👁️'}
+        <Icono nombre={visible ? 'ojoTachado' : 'ojo'} className="h-5 w-5" />
       </button>
     </div>
   );

@@ -7,7 +7,7 @@
 // vuelva la conexión, y la pantalla se quedaría "congelada".
 //
 // Aquí contamos cuántos cambios faltan por subir para mostrarlo
-// en el encabezado ("⏳ 3 cambios por subir").
+// en el encabezado ("Subiendo 3 cambio(s) a la nube").
 // ============================================================
 import type { WriteBatch } from 'firebase/firestore';
 import { mostrarAviso } from './avisos';
