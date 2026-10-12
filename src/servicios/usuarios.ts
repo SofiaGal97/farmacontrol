@@ -5,6 +5,9 @@ import { initializeApp, getApps } from 'firebase/app';
 import {
   createUserWithEmailAndPassword,
   deleteUser,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
   initializeAuth,
   inMemoryPersistence,
   sendPasswordResetEmail,
@@ -35,6 +38,18 @@ const documentoConfiguracion = doc(db, 'config', 'setup');
 /** Acepta un nombre de usuario (ej. "mercy") o un correo real */
 export function iniciarSesion(usuario: string, contrasena: string) {
   return signInWithEmailAndPassword(auth, usuarioACorreo(usuario), contrasena);
+}
+
+/**
+ * Cambia la contraseña del usuario que tiene la sesión abierta.
+ * Por seguridad, Firebase pide confirmar la contraseña actual. Necesita internet.
+ */
+export async function cambiarMiContrasena(actual: string, nueva: string) {
+  const usuario = auth.currentUser;
+  if (!usuario || !usuario.email) throw new Error('No hay sesión iniciada');
+  const credencial = EmailAuthProvider.credential(usuario.email, actual);
+  await reauthenticateWithCredential(usuario, credencial);
+  await updatePassword(usuario, nueva);
 }
 
 export function cerrarSesion() {

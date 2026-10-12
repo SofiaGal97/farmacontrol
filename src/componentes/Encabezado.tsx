@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import type { Usuario } from '../modelos/tipos';
+import ModalCambiarContrasena from './ModalCambiarContrasena';
 import { useConexion } from '../hooks/useConexion';
 import { cerrarSesion } from '../servicios/usuarios';
 
 /** Barra superior: nombre del sistema, usuario, rol y estado de conexión */
 export default function Encabezado({ perfil }: { perfil: Usuario }) {
   const { enLinea, pendientes } = useConexion();
+  const [cambiandoContrasena, setCambiandoContrasena] = useState(false);
 
   const manejarSalir = () => {
     if (pendientes > 0 && !enLinea) {
@@ -25,12 +28,21 @@ export default function Encabezado({ perfil }: { perfil: Usuario }) {
             {perfil.nombre} · {perfil.rol === 'admin' ? 'Administrador' : 'Empleado'}
           </p>
         </div>
-        <button
-          onClick={manejarSalir}
-          className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold active:bg-white/25"
-        >
-          Salir
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setCambiandoContrasena(true)}
+            className="rounded-lg bg-white/15 px-2.5 py-1.5 text-xs font-bold active:bg-white/25"
+            aria-label="Cambiar mi contraseña"
+          >
+            🔑
+          </button>
+          <button
+            onClick={manejarSalir}
+            className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold active:bg-white/25"
+          >
+            Salir
+          </button>
+        </div>
       </div>
 
       {/* Estado de conexión y sincronización */}
@@ -45,6 +57,7 @@ export default function Encabezado({ perfil }: { perfil: Usuario }) {
             ? `⏳ Subiendo ${pendientes} cambio(s) a la nube…`
             : '☁️ Conectado y sincronizado'}
       </div>
+      {cambiandoContrasena && <ModalCambiarContrasena onCerrar={() => setCambiandoContrasena(false)} />}
     </header>
   );
 }
