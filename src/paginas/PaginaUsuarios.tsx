@@ -8,6 +8,7 @@ import Modal from '../componentes/Modal';
 import { claseBotonPrincipal, claseBotonSecundario, claseInput, claseTarjeta, claseTituloSeccion } from '../componentes/estilos';
 import type { Rol, Usuario } from '../modelos/tipos';
 import { validarNuevoUsuario } from '../logica/validaciones';
+import { correoAUsuario } from '../logica/nombreUsuario';
 import { cambiarEstadoUsuario, cambiarRol, crearUsuario } from '../servicios/usuarios';
 import { mostrarAviso } from '../servicios/avisos';
 import { traducirError } from '../servicios/errores';
@@ -55,7 +56,7 @@ export default function PaginaUsuarios() {
                     <p className="font-bold text-slate-800">
                       {usuario.nombre} {soyYo && <span className="text-xs font-normal text-slate-400">(tú)</span>}
                     </p>
-                    <p className="truncate text-xs text-slate-500">{usuario.correo}</p>
+                    <p className="truncate text-xs text-slate-500">Usuario: {usuario.usuario ?? correoAUsuario(usuario.correo)}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <span
@@ -102,7 +103,7 @@ function ModalCrearUsuario({ onCerrar }: { onCerrar: () => void }) {
   const perfil = usePerfil();
   const { enLinea } = useConexion();
   const [nombre, setNombre] = useState('');
-  const [correo, setCorreo] = useState('');
+  const [nombreUsuario, setNombreUsuario] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [rol, setRol] = useState<Rol>('empleado');
   const [error, setError] = useState('');
@@ -110,7 +111,7 @@ function ModalCrearUsuario({ onCerrar }: { onCerrar: () => void }) {
 
   const manejarGuardar = async (e: FormEvent) => {
     e.preventDefault();
-    const problema = validarNuevoUsuario(nombre, correo, contrasena);
+    const problema = validarNuevoUsuario(nombre, nombreUsuario, contrasena);
     if (problema) {
       setError(problema);
       return;
@@ -118,7 +119,7 @@ function ModalCrearUsuario({ onCerrar }: { onCerrar: () => void }) {
     setGuardando(true);
     setError('');
     try {
-      await crearUsuario(nombre, correo, contrasena, rol, perfil);
+      await crearUsuario(nombre, nombreUsuario, contrasena, rol, perfil);
       mostrarAviso(`Usuario ${nombre} creado`);
       onCerrar();
     } catch (err) {
@@ -139,8 +140,17 @@ function ModalCrearUsuario({ onCerrar }: { onCerrar: () => void }) {
         <Campo etiqueta="Nombre completo" obligatorio>
           <input className={claseInput} value={nombre} onChange={(e) => setNombre(e.target.value)} />
         </Campo>
-        <Campo etiqueta="Correo electrónico" obligatorio ayuda="Lo usará para iniciar sesión">
-          <input type="email" className={claseInput} value={correo} onChange={(e) => setCorreo(e.target.value)} />
+        <Campo etiqueta="Usuario" obligatorio ayuda="Con esto entrará al sistema. Sin espacios ni tildes (ej. juan, ana.lopez)">
+          <input
+            type="text"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            placeholder="Ej. juan"
+            className={claseInput}
+            value={nombreUsuario}
+            onChange={(e) => setNombreUsuario(e.target.value)}
+          />
         </Campo>
         <Campo etiqueta="Contraseña inicial" obligatorio ayuda="Mínimo 6 caracteres">
           <input type="text" className={claseInput} value={contrasena} onChange={(e) => setContrasena(e.target.value)} />

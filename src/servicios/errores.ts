@@ -3,11 +3,11 @@
 // ============================================================
 
 const MENSAJES: Record<string, string> = {
-  'auth/invalid-credential': 'Correo o contraseña incorrectos.',
-  'auth/wrong-password': 'Correo o contraseña incorrectos.',
-  'auth/user-not-found': 'Correo o contraseña incorrectos.',
-  'auth/invalid-email': 'El correo no es válido.',
-  'auth/email-already-in-use': 'Ya existe un usuario con ese correo.',
+  'auth/invalid-credential': 'Usuario o contraseña incorrectos.',
+  'auth/wrong-password': 'Usuario o contraseña incorrectos.',
+  'auth/user-not-found': 'Usuario o contraseña incorrectos.',
+  'auth/invalid-email': 'El usuario o correo no es válido.',
+  'auth/email-already-in-use': 'Ese nombre de usuario ya existe. Elige otro.',
   'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
   'auth/too-many-requests': 'Demasiados intentos. Espera unos minutos e intenta de nuevo.',
   'auth/network-request-failed': 'Se necesita conexión a internet para esta acción.',

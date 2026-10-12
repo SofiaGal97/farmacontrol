@@ -23,6 +23,7 @@ import {
 } from 'firebase/firestore';
 import { auth, db, firebaseConfig } from '../config/firebase';
 import type { Rol, Usuario } from '../modelos/tipos';
+import { correoAUsuario, usuarioACorreo } from '../logica/nombreUsuario';
 import { registrarEnBitacora } from './bitacora';
 import { guardarEnSegundoPlano } from './sincronizacion';
 
@@ -31,8 +32,9 @@ const documentoConfiguracion = doc(db, 'config', 'setup');
 
 // ---------------- Sesión ----------------
 
-export function iniciarSesion(correo: string, contrasena: string) {
-  return signInWithEmailAndPassword(auth, correo.trim(), contrasena);
+/** Acepta un nombre de usuario (ej. "mercy") o un correo real */
+export function iniciarSesion(usuario: string, contrasena: string) {
+  return signInWithEmailAndPassword(auth, usuarioACorreo(usuario), contrasena);
 }
 
 export function cerrarSesion() {
@@ -83,13 +85,15 @@ export async function estadoConfiguracion(): Promise<EstadoConfiguracion> {
  * Crea la PRIMERA cuenta (administradora). Solo funciona una vez:
  * las reglas de seguridad lo impiden si ya existe "config/setup".
  */
-export async function crearPrimerAdministrador(nombre: string, correo: string, contrasena: string) {
-  const credencial = await createUserWithEmailAndPassword(auth, correo.trim(), contrasena);
+export async function crearPrimerAdministrador(nombre: string, usuario: string, contrasena: string) {
+  const correo = usuarioACorreo(usuario);
+  const credencial = await createUserWithEmailAndPassword(auth, correo, contrasena);
   try {
     const lote = writeBatch(db);
     lote.set(doc(coleccionUsuarios, credencial.user.uid), {
       nombre: nombre.trim(),
-      correo: correo.trim().toLowerCase(),
+      usuario: correoAUsuario(correo),
+      correo,
       rol: 'admin',
       activo: true,
       creadoEn: Timestamp.now(),
@@ -120,24 +124,26 @@ function obtenerAuthSecundaria(): Auth {
 
 export async function crearUsuario(
   nombre: string,
-  correo: string,
+  usuario: string,
   contrasena: string,
   rol: Rol,
   administrador: Usuario,
 ) {
+  const correo = usuarioACorreo(usuario);
   const authRegistro = obtenerAuthSecundaria();
-  const credencial = await createUserWithEmailAndPassword(authRegistro, correo.trim(), contrasena);
+  const credencial = await createUserWithEmailAndPassword(authRegistro, correo, contrasena);
   await signOut(authRegistro);
 
   const lote = writeBatch(db);
   lote.set(doc(coleccionUsuarios, credencial.user.uid), {
     nombre: nombre.trim(),
-    correo: correo.trim().toLowerCase(),
+    usuario: correoAUsuario(correo),
+    correo,
     rol,
     activo: true,
     creadoEn: Timestamp.now(),
   });
-  registrarEnBitacora(lote, administrador, 'Usuario creado', `${nombre.trim()} (${rol})`);
+  registrarEnBitacora(lote, administrador, 'Usuario creado', `${nombre.trim()} — usuario "${correoAUsuario(correo)}" (${rol})`);
   await lote.commit();
 }
 

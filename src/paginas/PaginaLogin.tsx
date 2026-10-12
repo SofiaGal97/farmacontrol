@@ -22,7 +22,7 @@ type Modo = 'entrar' | 'recuperar' | 'primerAdmin';
 export default function PaginaLogin() {
   const [modo, setModo] = useState<Modo>('entrar');
   const [nombre, setNombre] = useState('');
-  const [correo, setCorreo] = useState('');
+  const [usuario, setUsuario] = useState(''); // nombre de usuario o correo
   const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState('');
   const [procesando, setProcesando] = useState(false);
@@ -45,20 +45,24 @@ export default function PaginaLogin() {
     setError('');
 
     if (modo === 'primerAdmin') {
-      const problema = validarNuevoUsuario(nombre, correo, contrasena);
+      const problema = validarNuevoUsuario(nombre, usuario, contrasena);
       if (problema) return setError(problema);
     }
 
     setProcesando(true);
     try {
       if (modo === 'entrar') {
-        await iniciarSesion(correo, contrasena);
+        await iniciarSesion(usuario, contrasena);
       } else if (modo === 'recuperar') {
-        await recuperarContrasena(correo);
+        if (!usuario.includes('@')) {
+          setError('La recuperación por correo solo funciona si tu usuario es un correo real. Pide a un administrador que te cree un usuario nuevo.');
+          return;
+        }
+        await recuperarContrasena(usuario);
         mostrarAviso('Te enviamos un correo para cambiar tu contraseña.', 'info');
         cambiarModo('entrar');
       } else {
-        await crearPrimerAdministrador(nombre, correo, contrasena);
+        await crearPrimerAdministrador(nombre, usuario, contrasena);
         mostrarAviso('¡Cuenta de administrador creada!');
       }
     } catch (err) {
@@ -98,16 +102,31 @@ export default function PaginaLogin() {
           </Campo>
         )}
 
-        <Campo etiqueta="Correo electrónico" obligatorio>
+        <Campo
+          etiqueta={modo === 'recuperar' ? 'Correo electrónico' : 'Usuario'}
+          obligatorio
+          ayuda={modo === 'primerAdmin' ? 'Sin espacios ni tildes. Ej: mercy. Con esto entrarás al sistema.' : undefined}
+        >
           <input
-            type="email"
-            autoComplete="email"
+            type="text"
+            autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            placeholder={modo === 'recuperar' ? 'tucorreo@gmail.com' : 'Ej. mercy'}
             className={claseInput}
-            value={correo}
-            onChange={(e) => setCorreo(e.target.value)}
+            value={usuario}
+            onChange={(e) => setUsuario(e.target.value)}
             required
           />
         </Campo>
+
+        {modo === 'recuperar' && (
+          <p className="rounded-lg bg-slate-50 p-2.5 text-xs text-slate-600">
+            Solo funciona si tu usuario es un correo real. Si entras con un nombre de usuario (ej. mercy),
+            pide a un administrador que te cree un usuario nuevo.
+          </p>
+        )}
 
         {modo !== 'recuperar' && (
           <Campo etiqueta="Contraseña" obligatorio ayuda={modo === 'primerAdmin' ? 'Mínimo 6 caracteres' : undefined}>

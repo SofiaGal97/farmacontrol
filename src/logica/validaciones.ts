@@ -80,9 +80,14 @@ export function validarProducto(formulario: FormularioProducto): Resultado {
 }
 
 /** Validación de un usuario nuevo */
-export function validarNuevoUsuario(nombre: string, correo: string, contrasena: string): string | null {
+export function validarNuevoUsuario(nombre: string, usuario: string, contrasena: string): string | null {
+  const limpio = usuario.trim().toLowerCase();
   if (!nombre.trim()) return 'Escribe el nombre de la persona.';
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) return 'El correo no es válido.';
+  if (limpio.includes('@')) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(limpio)) return 'El correo no es válido.';
+  } else if (!/^[a-z0-9._-]{3,30}$/.test(limpio)) {
+    return 'El usuario debe tener de 3 a 30 letras o números, sin espacios ni tildes (ej. mercy, juan.perez).';
+  }
   if (contrasena.length < 6) return 'La contraseña debe tener al menos 6 caracteres.';
   return null;
 }
