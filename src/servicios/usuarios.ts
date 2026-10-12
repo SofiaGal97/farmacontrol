@@ -60,17 +60,22 @@ export function escucharPerfil(
 
 // ---------------- Primer administrador ----------------
 
+export type EstadoConfiguracion = 'configurado' | 'pendiente' | 'sin_conexion' | 'error';
+
 /** ¿Ya se configuró el sistema (ya existe el primer administrador)? */
-export async function sistemaConfigurado(): Promise<boolean> {
+export async function estadoConfiguracion(): Promise<EstadoConfiguracion> {
+  if (!navigator.onLine) return 'sin_conexion';
   try {
-    const documento = await getDoc(documentoConfiguracion);
-    return documento.exists();
+    // Si la base de datos no responde en 10 segundos, lo tomamos como error
+    const limite = new Promise<never>((_, rechazar) => setTimeout(() => rechazar(new Error('tiempo agotado')), 10000));
+    const documento = await Promise.race([getDoc(documentoConfiguracion), limite]);
+    return documento.exists() ? 'configurado' : 'pendiente';
   } catch (error) {
-    // Si no se pudo verificar (sin internet, reglas aún no publicadas, etc.)
+    // Si no se pudo verificar (reglas aún no publicadas, base de datos no creada, etc.)
     // mostramos la opción igual: las reglas de seguridad impiden crear
     // un segundo administrador si el sistema ya estaba configurado.
     console.warn('No se pudo verificar la configuración inicial:', error);
-    return false;
+    return 'error';
   }
 }
 

@@ -1,0 +1,31 @@
+# ============================================================
+# PUBLICACIÓN AUTOMÁTICA EN FIREBASE HOSTING (gratis)
+# Link: https://farmacontrol-2cd80.web.app
+# Requiere el secreto FIREBASE_SERVICE_ACCOUNT en GitHub
+# (Settings → Secrets and variables → Actions).
+# ============================================================
+name: Publicar en Firebase
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build
+        env:
+          VITE_BASE: /
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: live
+          projectId: farmacontrol-2cd80

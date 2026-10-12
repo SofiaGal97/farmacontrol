@@ -10,7 +10,8 @@ import {
   crearPrimerAdministrador,
   iniciarSesion,
   recuperarContrasena,
-  sistemaConfigurado,
+  estadoConfiguracion,
+  type EstadoConfiguracion,
 } from '../servicios/usuarios';
 import { traducirError } from '../servicios/errores';
 import { validarNuevoUsuario } from '../logica/validaciones';
@@ -25,12 +26,14 @@ export default function PaginaLogin() {
   const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState('');
   const [procesando, setProcesando] = useState(false);
-  const [mostrarPrimerAdmin, setMostrarPrimerAdmin] = useState(false);
+  const [configuracion, setConfiguracion] = useState<EstadoConfiguracion | 'verificando'>('verificando');
 
   // Si todavía no existe ningún administrador, ofrecemos crearlo
   useEffect(() => {
-    sistemaConfigurado().then((configurado) => setMostrarPrimerAdmin(!configurado));
+    estadoConfiguracion().then(setConfiguracion);
   }, []);
+
+  const mostrarPrimerAdmin = configuracion === 'pendiente' || configuracion === 'error';
 
   const cambiarModo = (nuevo: Modo) => {
     setModo(nuevo);
@@ -142,6 +145,13 @@ export default function PaginaLogin() {
             </button>
           )}
         </div>
+
+        {configuracion === 'error' && (
+          <p className="rounded-lg bg-amber-50 p-2.5 text-xs text-amber-800">
+            ⚠️ No se pudo conectar con la base de datos. Revisa que en Firebase esté creada la base de
+            datos Firestore y publicadas las reglas de seguridad.
+          </p>
+        )}
 
         <p className="text-center text-[11px] text-slate-400">
           La primera vez necesitas internet. Después puedes trabajar sin conexión.
