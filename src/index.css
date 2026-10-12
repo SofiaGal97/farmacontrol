@@ -1,0 +1,16 @@
+/* Tailwind CSS: las clases como "bg-blue-600" o "rounded-xl" vienen de aquí */
+@import "tailwindcss";
+
+html,
+body {
+  background-color: #f1f5f9;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Evita que el celular haga zoom al tocar un campo de texto */
+input,
+select,
+textarea {
+  font-size: 16px;
+}

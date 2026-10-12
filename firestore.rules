@@ -1,0 +1,126 @@
+rules_version = '2';
+
+// ============================================================
+// REGLAS DE SEGURIDAD DE FIRESTORE (se ejecutan en la NUBE)
+// Aunque alguien modifique la página o use otra herramienta,
+// la base de datos solo acepta lo que estas reglas permiten.
+//
+// Cómo aplicarlas: Consola de Firebase → Firestore Database →
+// pestaña "Reglas" → pegar todo este archivo → "Publicar".
+// ============================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Funciones de ayuda ----------
+
+    function sesionIniciada() {
+      return request.auth != null;
+    }
+
+    function rutaPerfil() {
+      return /databases/$(database)/documents/usuarios/$(request.auth.uid);
+    }
+
+    // Usuario con sesión, con perfil y NO desactivado
+    function usuarioActivo() {
+      return sesionIniciada() && exists(rutaPerfil()) && get(rutaPerfil()).data.activo == true;
+    }
+
+    function esAdmin() {
+      return usuarioActivo() && get(rutaPerfil()).data.rol == 'admin';
+    }
+
+    // ¿El cambio solo toca estos campos?
+    function soloCambia(campos) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(campos);
+    }
+
+    function usuarioValido(u) {
+      return u.nombre is string && u.nombre.size() > 0 && u.nombre.size() <= 100
+        && u.correo is string
+        && u.rol in ['admin', 'empleado']
+        && u.activo is bool;
+    }
+
+    function productoValido(p) {
+      return p.nombre is string && p.nombre.size() > 0 && p.nombre.size() <= 120
+        && p.componenteActivo is string
+        && p.laboratorio is string && p.laboratorio.size() > 0
+        && p.tipo in ['Etico', 'Generico']
+        && p.stock is int
+        && p.stockMinimo is int && p.stockMinimo >= 0
+        && p.precioCosto is number && p.precioCosto >= 0
+        && p.precioVenta is number && p.precioVenta >= 0
+        && p.vencimiento is string && p.vencimiento.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && p.activo is bool
+        && p.actualizadoPor == request.auth.uid;
+    }
+
+    // ---------- Configuración inicial ----------
+    // Marca que ya existe el primer administrador. Se crea una sola vez.
+    match /config/setup {
+      allow get: if true;
+      allow create: if sesionIniciada()
+        && getAfter(rutaPerfil()).data.rol == 'admin';
+      allow update, delete: if false;
+    }
+
+    // ---------- Usuarios ----------
+    match /usuarios/{uid} {
+      // Cada quien puede leer su propio perfil; el admin puede leer todos
+      allow get: if (sesionIniciada() && request.auth.uid == uid) || esAdmin();
+      allow list: if esAdmin();
+
+      allow create: if usuarioValido(request.resource.data) && (
+        esAdmin()
+        // Primer administrador: solo si el sistema aún no está configurado
+        || (sesionIniciada() && request.auth.uid == uid
+            && request.resource.data.rol == 'admin'
+            && !exists(/databases/$(database)/documents/config/setup)
+            && existsAfter(/databases/$(database)/documents/config/setup))
+      );
+
+      // El admin puede cambiar rol o estado de OTROS usuarios (no de sí mismo)
+      allow update: if esAdmin() && request.auth.uid != uid
+        && soloCambia(['rol', 'activo'])
+        && usuarioValido(request.resource.data);
+
+      allow delete: if false;
+    }
+
+    // ---------- Productos (inventario) ----------
+    match /productos/{id} {
+      allow read: if usuarioActivo();
+      allow create: if esAdmin() && productoValido(request.resource.data);
+      allow update: if
+        // El admin puede editar todo (con datos válidos)
+        (esAdmin() && productoValido(request.resource.data))
+        // El empleado solo puede cambiar stock y vencimiento (ventas y reabastecimiento)
+        || (usuarioActivo()
+            && soloCambia(['stock', 'vencimiento', 'actualizadoEn', 'actualizadoPor'])
+            && request.resource.data.stock is int
+            && request.resource.data.actualizadoPor == request.auth.uid);
+      allow delete: if false; // se usa "activo: false" para no perder historial
+    }
+
+    // ---------- Ventas ----------
+    match /ventas/{id} {
+      allow read: if esAdmin();
+      allow create: if usuarioActivo()
+        && request.resource.data.vendedorUid == request.auth.uid
+        && request.resource.data.items is list
+        && request.resource.data.items.size() > 0
+        && request.resource.data.total is number
+        && request.resource.data.total >= 0;
+      allow update, delete: if false; // una venta registrada no se modifica
+    }
+
+    // ---------- Bitácora ----------
+    match /bitacora/{id} {
+      allow read: if esAdmin();
+      allow create: if usuarioActivo()
+        && request.resource.data.usuarioUid == request.auth.uid;
+      allow update, delete: if false; // nadie puede borrar el historial
+    }
+  }
+}
