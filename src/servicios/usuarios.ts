@@ -65,8 +65,12 @@ export async function sistemaConfigurado(): Promise<boolean> {
   try {
     const documento = await getDoc(documentoConfiguracion);
     return documento.exists();
-  } catch {
-    return true; // sin internet: asumimos que sí, para no mostrar la opción
+  } catch (error) {
+    // Si no se pudo verificar (sin internet, reglas aún no publicadas, etc.)
+    // mostramos la opción igual: las reglas de seguridad impiden crear
+    // un segundo administrador si el sistema ya estaba configurado.
+    console.warn('No se pudo verificar la configuración inicial:', error);
+    return false;
   }
 }
 
