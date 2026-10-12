@@ -12,7 +12,7 @@ Aplicación web progresiva (PWA): se abre con un link, se instala como app y **f
 | Base de datos en la nube | Firebase Cloud Firestore |
 | Usuarios y roles | Firebase Authentication + reglas de seguridad (`firestore.rules`) |
 | Reportes | jsPDF + jspdf-autotable |
-| Publicación | GitHub Pages con GitHub Actions |
+| Publicación | Firebase Hosting con GitHub Actions (https://farmacontrol-2cd80.web.app) |
 
 ## Estructura por capas (`src/`)
 

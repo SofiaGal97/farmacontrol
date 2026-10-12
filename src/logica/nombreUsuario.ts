@@ -21,8 +21,3 @@ export function correoAUsuario(correo: string): string {
   const sufijo = `@${DOMINIO_INTERNO}`;
   return correo.endsWith(sufijo) ? correo.slice(0, -sufijo.length) : correo;
 }
-
-/** ¿Es un correo real (se puede recuperar la contraseña por email)? */
-export function esCorreoReal(correo: string): boolean {
-  return !correo.endsWith(`@${DOMINIO_INTERNO}`);
-}
