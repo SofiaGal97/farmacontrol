@@ -11,7 +11,7 @@ export type Rol = 'admin' | 'empleado';
 export interface Usuario {
   uid: string; // identificador que da Firebase Authentication
   nombre: string;
-  usuario?: string; // nombre de usuario para entrar, ej. "mercy"
+  usuario?: string; // nombre de usuario para entrar, ej. "ventas1"
   correo: string; // correo real o interno (ver logica/nombreUsuario.ts)
   rol: Rol;
   activo: boolean; // si es false, ya no puede usar el sistema

@@ -86,7 +86,7 @@ export function validarNuevoUsuario(nombre: string, usuario: string, contrasena:
   if (limpio.includes('@')) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(limpio)) return 'El correo no es válido.';
   } else if (!/^[a-z0-9._-]{3,30}$/.test(limpio)) {
-    return 'El usuario debe tener de 3 a 30 letras o números, sin espacios ni tildes (ej. mercy, juan.perez).';
+    return 'El usuario debe tener de 3 a 30 letras o números, sin espacios ni tildes.';
   }
   if (contrasena.length < 6) return 'La contraseña debe tener al menos 6 caracteres.';
   return null;

@@ -35,7 +35,7 @@ const documentoConfiguracion = doc(db, 'config', 'setup');
 
 // ---------------- Sesión ----------------
 
-/** Acepta un nombre de usuario (ej. "mercy") o un correo real */
+/** Acepta un nombre de usuario (ej. "ventas1") o un correo real */
 export function iniciarSesion(usuario: string, contrasena: string) {
   return signInWithEmailAndPassword(auth, usuarioACorreo(usuario), contrasena);
 }

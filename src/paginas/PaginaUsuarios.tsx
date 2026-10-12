@@ -140,13 +140,13 @@ function ModalCrearUsuario({ onCerrar }: { onCerrar: () => void }) {
         <Campo etiqueta="Nombre completo" obligatorio>
           <input className={claseInput} value={nombre} onChange={(e) => setNombre(e.target.value)} />
         </Campo>
-        <Campo etiqueta="Usuario" obligatorio ayuda="Con esto entrará al sistema. Sin espacios ni tildes (ej. juan, ana.lopez)">
+        <Campo etiqueta="Usuario" obligatorio ayuda="Con esto entrará al sistema. Sin espacios ni tildes (solo letras, números o punto)">
           <input
             type="text"
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
-            placeholder="Ej. juan"
+            placeholder="Usuario para entrar"
             className={claseInput}
             value={nombreUsuario}
             onChange={(e) => setNombreUsuario(e.target.value)}

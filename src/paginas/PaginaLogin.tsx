@@ -105,7 +105,7 @@ export default function PaginaLogin() {
         <Campo
           etiqueta={modo === 'recuperar' ? 'Correo electrónico' : 'Usuario'}
           obligatorio
-          ayuda={modo === 'primerAdmin' ? 'Sin espacios ni tildes. Ej: mercy. Con esto entrarás al sistema.' : undefined}
+          ayuda={modo === 'primerAdmin' ? 'Sin espacios ni tildes. Con esto entrarás al sistema.' : undefined}
         >
           <input
             type="text"
@@ -113,7 +113,7 @@ export default function PaginaLogin() {
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
-            placeholder={modo === 'recuperar' ? 'tucorreo@gmail.com' : 'Ej. mercy'}
+            placeholder={modo === 'recuperar' ? 'tucorreo@gmail.com' : 'Escribe tu usuario'}
             className={claseInput}
             value={usuario}
             onChange={(e) => setUsuario(e.target.value)}
@@ -123,7 +123,7 @@ export default function PaginaLogin() {
 
         {modo === 'recuperar' && (
           <p className="rounded-lg bg-slate-50 p-2.5 text-xs text-slate-600">
-            Solo funciona si tu usuario es un correo real. Si entras con un nombre de usuario (ej. mercy),
+            Solo funciona si tu usuario es un correo real. Si entras con un nombre de usuario,
             pide a un administrador que te cree un usuario nuevo.
           </p>
         )}
