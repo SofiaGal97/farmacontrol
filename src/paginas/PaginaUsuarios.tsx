@@ -4,6 +4,7 @@
 // ============================================================
 import { useState, type FormEvent } from 'react';
 import Campo from '../componentes/Campo';
+import InputContrasena from '../componentes/InputContrasena';
 import Modal from '../componentes/Modal';
 import { claseBotonPrincipal, claseBotonSecundario, claseInput, claseTarjeta, claseTituloSeccion } from '../componentes/estilos';
 import type { Rol, Usuario } from '../modelos/tipos';
@@ -153,7 +154,7 @@ function ModalCrearUsuario({ onCerrar }: { onCerrar: () => void }) {
           />
         </Campo>
         <Campo etiqueta="Contraseña inicial" obligatorio ayuda="Mínimo 6 caracteres">
-          <input type="text" className={claseInput} value={contrasena} onChange={(e) => setContrasena(e.target.value)} />
+          <InputContrasena valor={contrasena} onCambiar={setContrasena} autoComplete="new-password" />
         </Campo>
         <Campo etiqueta="Rol" obligatorio>
           <select className={claseInput} value={rol} onChange={(e) => setRol(e.target.value as Rol)}>

@@ -5,6 +5,7 @@
 // ============================================================
 import { useEffect, useState, type FormEvent } from 'react';
 import Campo from '../componentes/Campo';
+import InputContrasena from '../componentes/InputContrasena';
 import { claseBotonPrincipal, claseInput } from '../componentes/estilos';
 import {
   crearPrimerAdministrador,
@@ -130,12 +131,10 @@ export default function PaginaLogin() {
 
         {modo !== 'recuperar' && (
           <Campo etiqueta="Contraseña" obligatorio ayuda={modo === 'primerAdmin' ? 'Mínimo 6 caracteres' : undefined}>
-            <input
-              type="password"
+            <InputContrasena
+              valor={contrasena}
+              onCambiar={setContrasena}
               autoComplete={modo === 'entrar' ? 'current-password' : 'new-password'}
-              className={claseInput}
-              value={contrasena}
-              onChange={(e) => setContrasena(e.target.value)}
               required
             />
           </Campo>

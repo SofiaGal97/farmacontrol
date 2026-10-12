@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import Campo from './Campo';
+import InputContrasena from './InputContrasena';
 import Modal from './Modal';
-import { claseBotonPrincipal, claseBotonSecundario, claseInput } from './estilos';
+import { claseBotonPrincipal, claseBotonSecundario } from './estilos';
 import { cambiarMiContrasena } from '../servicios/usuarios';
 import { mostrarAviso } from '../servicios/avisos';
 import { traducirError } from '../servicios/errores';
@@ -43,13 +44,13 @@ export default function ModalCambiarContrasena({ onCerrar }: { onCerrar: () => v
       )}
       <form onSubmit={manejarGuardar} className="space-y-4">
         <Campo etiqueta="Contraseña actual" obligatorio>
-          <input type="password" autoComplete="current-password" className={claseInput} value={actual} onChange={(e) => setActual(e.target.value)} />
+          <InputContrasena valor={actual} onCambiar={setActual} autoComplete="current-password" />
         </Campo>
         <Campo etiqueta="Nueva contraseña" obligatorio ayuda="Mínimo 6 caracteres">
-          <input type="password" autoComplete="new-password" className={claseInput} value={nueva} onChange={(e) => setNueva(e.target.value)} />
+          <InputContrasena valor={nueva} onCambiar={setNueva} autoComplete="new-password" />
         </Campo>
         <Campo etiqueta="Repite la nueva contraseña" obligatorio>
-          <input type="password" autoComplete="new-password" className={claseInput} value={confirmacion} onChange={(e) => setConfirmacion(e.target.value)} />
+          <InputContrasena valor={confirmacion} onCambiar={setConfirmacion} autoComplete="new-password" />
         </Campo>
 
         {error && <p className="rounded-lg bg-red-50 p-2.5 text-sm font-medium text-red-700">{error}</p>}
