@@ -3,7 +3,7 @@
 // Usa la librería ExcelJS. Se carga solo cuando se necesita
 // (import dinámico) para que la aplicación abra más rápido.
 // ============================================================
-import type { Lote, Movimiento, Producto, Venta } from '../modelos/tipos';
+import type { Lote, Movimiento, Producto, Proveedor, Usuario, Venta } from '../modelos/tipos';
 import { diasParaVencer, estadoVencimiento, lotesDeProducto } from '../logica/alertas';
 import { formatoFecha } from '../logica/formato';
 import { NOMBRE_MOVIMIENTO } from '../logica/reportes';
@@ -201,6 +201,117 @@ export function exportarMovimientosExcel(movimientos: Movimiento[], desde: Date)
         m.detalle,
         m.usuarioNombre,
       ]),
+    },
+  ]);
+}
+
+// ---------------- Respaldo completo ----------------
+
+interface DatosRespaldo {
+  productos: Producto[];
+  lotes: Lote[];
+  proveedores: Proveedor[];
+  ventas: Venta[];
+  movimientos: Movimiento[];
+  usuarios: Usuario[];
+}
+
+/** Excel con TODA la información del sistema (copia de seguridad) */
+export function exportarRespaldoExcel(datos: DatosRespaldo) {
+  const fechaTexto = (fecha: Date) => fechaExcel(fecha);
+  return descargarExcel(`respaldo_farmacontrol_${fechaArchivo(new Date())}`, [
+    {
+      nombre: 'Productos',
+      columnas: [
+        { titulo: 'ID', ancho: 22 },
+        { titulo: 'Producto', ancho: 28 },
+        { titulo: 'Componente', ancho: 22 },
+        { titulo: 'Presentación', ancho: 20 },
+        { titulo: 'Laboratorio', ancho: 18 },
+        { titulo: 'Tipo', ancho: 10 },
+        { titulo: 'Código', ancho: 14 },
+        { titulo: 'Existencia', ancho: 11 },
+        { titulo: 'Stock mínimo', ancho: 12 },
+        { titulo: 'Precio costo', ancho: 13, formato: FORMATO_QUETZALES },
+        { titulo: 'Precio público', ancho: 13, formato: FORMATO_QUETZALES },
+        { titulo: 'Estado', ancho: 10 },
+      ],
+      filas: datos.productos.map((p) => [
+        p.id, p.nombre, p.componenteActivo, p.presentacion, p.laboratorio, p.tipo === 'Etico' ? 'Ético' : 'Genérico',
+        p.codigo, p.stock, p.stockMinimo, p.precioCosto, p.precioVenta, p.activo ? 'Activo' : 'Eliminado',
+      ]),
+    },
+    {
+      nombre: 'Lotes',
+      columnas: [
+        { titulo: 'ID', ancho: 22 },
+        { titulo: 'Producto', ancho: 28 },
+        { titulo: 'Lote', ancho: 14 },
+        { titulo: 'Vencimiento', ancho: 13 },
+        { titulo: 'Ingresaron', ancho: 11 },
+        { titulo: 'Quedan', ancho: 10 },
+        { titulo: 'Costo unitario', ancho: 13, formato: FORMATO_QUETZALES },
+        { titulo: 'Proveedor', ancho: 22 },
+        { titulo: 'Fecha de ingreso', ancho: 17, formato: FORMATO_FECHA },
+      ],
+      filas: datos.lotes.map((l) => [
+        l.id, l.productoNombre, l.numeroLote, l.vencimiento.split('-').reverse().join('/'), l.cantidadInicial,
+        l.cantidad, l.costoUnitario, l.proveedorNombre, fechaTexto(l.fechaIngreso),
+      ]),
+    },
+    {
+      nombre: 'Proveedores',
+      columnas: [
+        { titulo: 'Nombre', ancho: 28 },
+        { titulo: 'Teléfono', ancho: 14 },
+        { titulo: 'Contacto', ancho: 20 },
+        { titulo: 'Dirección', ancho: 35 },
+        { titulo: 'Estado', ancho: 10 },
+      ],
+      filas: datos.proveedores.map((p) => [p.nombre, p.telefono, p.contacto, p.direccion, p.activo ? 'Activo' : 'Inactivo']),
+    },
+    {
+      nombre: 'Ventas',
+      columnas: [
+        { titulo: 'No.', ancho: 18 },
+        { titulo: 'Fecha', ancho: 17, formato: FORMATO_FECHA },
+        { titulo: 'Vendedor', ancho: 20 },
+        { titulo: 'Productos', ancho: 45 },
+        { titulo: 'Total', ancho: 12, formato: FORMATO_QUETZALES },
+        { titulo: 'Ganancia', ancho: 12, formato: FORMATO_QUETZALES },
+        { titulo: 'Estado', ancho: 12 },
+        { titulo: 'Motivo de anulación', ancho: 30 },
+      ],
+      filas: datos.ventas.map((v) => [
+        v.numero, fechaTexto(v.fecha), v.vendedorNombre, v.items.map((i) => `${i.cantidad}x ${i.nombre}`).join(', '),
+        v.total, v.ganancia, v.anulada ? 'ANULADA' : 'Válida', v.motivoAnulacion ?? '',
+      ]),
+    },
+    {
+      nombre: 'Kardex',
+      columnas: [
+        { titulo: 'Fecha', ancho: 17, formato: FORMATO_FECHA },
+        { titulo: 'Tipo', ancho: 11 },
+        { titulo: 'Producto', ancho: 28 },
+        { titulo: 'Lote', ancho: 14 },
+        { titulo: 'Cantidad', ancho: 10 },
+        { titulo: 'Detalle', ancho: 40 },
+        { titulo: 'Usuario', ancho: 20 },
+      ],
+      filas: datos.movimientos.map((m) => [
+        fechaTexto(m.fecha), NOMBRE_MOVIMIENTO[m.tipo], m.productoNombre, m.numeroLote, m.cantidad, m.detalle, m.usuarioNombre,
+      ]),
+    },
+    {
+      nombre: 'Usuarios',
+      columnas: [
+        { titulo: 'Nombre', ancho: 28 },
+        { titulo: 'Usuario', ancho: 20 },
+        { titulo: 'Rol', ancho: 14 },
+        { titulo: 'Estado', ancho: 12 },
+      ],
+      // Nunca se exportan contraseñas: Firebase las guarda cifradas y nadie puede verlas
+      filas: datos.usuarios.map((u) => [u.nombre, u.usuario ?? u.correo, u.rol === 'admin' ? 'Administrador' : 'Empleado', u.activo ? 'Activo' : 'Desactivado']),
     },
   ]);
 }

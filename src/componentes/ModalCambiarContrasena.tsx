@@ -7,6 +7,7 @@ import { cambiarMiContrasena } from '../servicios/usuarios';
 import { mostrarAviso } from '../servicios/avisos';
 import { traducirError } from '../servicios/errores';
 import { useConexion } from '../hooks/useConexion';
+import { AYUDA_CONTRASENA, validarContrasena } from '../logica/validaciones';
 
 /** Ventana para que cualquier usuario cambie su propia contraseña */
 export default function ModalCambiarContrasena({ onCerrar }: { onCerrar: () => void }) {
@@ -19,7 +20,9 @@ export default function ModalCambiarContrasena({ onCerrar }: { onCerrar: () => v
 
   const manejarGuardar = async (e: FormEvent) => {
     e.preventDefault();
-    if (nueva.length < 6) return setError('La nueva contraseña debe tener al menos 6 caracteres.');
+    const problema = validarContrasena(nueva);
+    if (problema) return setError(problema);
+    if (nueva === actual) return setError('La nueva contraseña debe ser diferente a la actual.');
     if (nueva !== confirmacion) return setError('Las contraseñas nuevas no coinciden.');
 
     setGuardando(true);
@@ -48,7 +51,7 @@ export default function ModalCambiarContrasena({ onCerrar }: { onCerrar: () => v
         <Campo etiqueta="Contraseña actual" obligatorio>
           <InputContrasena valor={actual} onCambiar={setActual} autoComplete="current-password" />
         </Campo>
-        <Campo etiqueta="Nueva contraseña" obligatorio ayuda="Mínimo 6 caracteres">
+        <Campo etiqueta="Nueva contraseña" obligatorio ayuda={AYUDA_CONTRASENA}>
           <InputContrasena valor={nueva} onCambiar={setNueva} autoComplete="new-password" />
         </Campo>
         <Campo etiqueta="Repite la nueva contraseña" obligatorio>

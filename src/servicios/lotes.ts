@@ -10,6 +10,7 @@ import {
   Timestamp,
   where,
   writeBatch,
+  type DocumentData,
   type Unsubscribe,
   type WriteBatch,
 } from 'firebase/firestore';
@@ -22,30 +23,30 @@ import { guardarEnSegundoPlano } from './sincronizacion';
 const coleccionLotes = collection(db, 'lotes');
 const coleccionProductos = collection(db, 'productos');
 
+/** Convierte un documento de Firestore en un Lote */
+export function aLote(id: string, datos: DocumentData): Lote {
+  return {
+    id,
+    productoId: datos.productoId,
+    productoNombre: datos.productoNombre,
+    numeroLote: datos.numeroLote,
+    vencimiento: datos.vencimiento,
+    cantidadInicial: datos.cantidadInicial,
+    cantidad: datos.cantidad,
+    costoUnitario: datos.costoUnitario,
+    proveedorId: datos.proveedorId,
+    proveedorNombre: datos.proveedorNombre,
+    fechaIngreso: (datos.fechaIngreso as Timestamp).toDate(),
+  };
+}
+
 /** Escucha los lotes que todavía tienen unidades */
 export function escucharLotes(alRecibir: (lotes: Lote[]) => void, alFallar: (error: Error) => void): Unsubscribe {
   const consulta = query(coleccionLotes, where('cantidad', '>', 0));
   return onSnapshot(
     consulta,
     (resultado) => {
-      alRecibir(
-        resultado.docs.map((d) => {
-          const datos = d.data();
-          return {
-            id: d.id,
-            productoId: datos.productoId,
-            productoNombre: datos.productoNombre,
-            numeroLote: datos.numeroLote,
-            vencimiento: datos.vencimiento,
-            cantidadInicial: datos.cantidadInicial,
-            cantidad: datos.cantidad,
-            costoUnitario: datos.costoUnitario,
-            proveedorId: datos.proveedorId,
-            proveedorNombre: datos.proveedorNombre,
-            fechaIngreso: (datos.fechaIngreso as Timestamp).toDate(),
-          };
-        }),
-      );
+      alRecibir(resultado.docs.map((d) => aLote(d.id, d.data())));
     },
     alFallar,
   );

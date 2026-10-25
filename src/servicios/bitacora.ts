@@ -27,7 +27,8 @@ export function registrarEnBitacora(lote: WriteBatch, usuario: Usuario, accion: 
     usuarioUid: usuario.uid,
     usuarioNombre: usuario.nombre,
     accion,
-    detalle,
+    // Límite de tamaño (las reglas de seguridad no aceptan textos enormes)
+    detalle: detalle.length > 1900 ? `${detalle.slice(0, 1900)}…` : detalle,
   });
 }
 

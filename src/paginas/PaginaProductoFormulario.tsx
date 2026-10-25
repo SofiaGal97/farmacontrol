@@ -10,6 +10,7 @@ import type { DatosEntrada, Producto } from '../modelos/tipos';
 import {
   FORMULARIO_ENTRADA_VACIO,
   FORMULARIO_PRODUCTO_VACIO,
+  buscarDuplicado,
   validarEntrada,
   validarProducto,
   type FormularioEntrada,
@@ -18,7 +19,7 @@ import {
 import { formatoQuetzales } from '../logica/formato';
 import { crearProducto, editarProducto } from '../servicios/productos';
 import { mostrarAviso } from '../servicios/avisos';
-import { useProveedores } from '../hooks/useDatos';
+import { useProductos, useProveedores } from '../hooks/useDatos';
 import { usePerfil } from '../hooks/useSesion';
 
 interface Props {
@@ -44,6 +45,7 @@ function productoAFormulario(p: Producto): FormularioProducto {
 export default function PaginaProductoFormulario({ productoAEditar, onTerminar }: Props) {
   const perfil = usePerfil();
   const { datos: proveedores } = useProveedores();
+  const { datos: productos } = useProductos();
   const editando = Boolean(productoAEditar);
 
   const [formulario, setFormulario] = useState<FormularioProducto>(
@@ -63,6 +65,8 @@ export default function PaginaProductoFormulario({ productoAEditar, onTerminar }
     e.preventDefault();
     const resultado = validarProducto(formulario);
     if (resultado.valido === false) return setError(resultado.error);
+    const duplicado = buscarDuplicado(resultado.datos, productos, productoAEditar?.id);
+    if (duplicado) return setError(duplicado);
 
     if (productoAEditar) {
       editarProducto(productoAEditar, resultado.datos, perfil);

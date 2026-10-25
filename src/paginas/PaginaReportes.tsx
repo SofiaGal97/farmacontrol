@@ -266,7 +266,7 @@ function ModalAnularVenta({ venta, onCerrar }: { venta: Venta; onCerrar: () => v
         <Campo etiqueta="Motivo" obligatorio>
           <input
             className={claseInput}
-            placeholder="Ej. Se cobró un producto equivocado"
+            placeholder="Ej. Se cobró un producto equivocado" maxLength={200}
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
           />

@@ -150,9 +150,16 @@ service cloud.firestore {
       allow read: if esAdmin();
       allow create: if usuarioActivo()
         && request.resource.data.usuarioUid == request.auth.uid
+        && request.resource.data.usuarioNombre is string
         && request.resource.data.tipo in ['entrada', 'venta', 'anulacion', 'baja', 'ajuste']
         && request.resource.data.cantidad is int
-        && request.resource.data.productoId is string;
+        && request.resource.data.cantidad != 0
+        && request.resource.data.productoId is string
+        && request.resource.data.numeroLote is string
+        && request.resource.data.detalle is string && request.resource.data.detalle.size() <= 500
+        && request.resource.data.fecha is timestamp
+        // Solo el administrador puede hacer bajas, ajustes y anulaciones
+        && (request.resource.data.tipo in ['entrada', 'venta'] || esAdmin());
       allow update, delete: if false; // el kardex no se modifica
     }
 
@@ -163,8 +170,13 @@ service cloud.firestore {
         && request.resource.data.vendedorUid == request.auth.uid
         && request.resource.data.items is list
         && request.resource.data.items.size() > 0
+        && request.resource.data.items.size() <= 100
         && request.resource.data.total is number
         && request.resource.data.total >= 0
+        && request.resource.data.ganancia is number
+        && request.resource.data.numero is string
+        && request.resource.data.vendedorNombre is string
+        && request.resource.data.fecha is timestamp
         && request.resource.data.anulada == false;
       // Una venta no se edita: solo el administrador puede ANULARLA, una vez
       allow update: if esAdmin()
@@ -180,7 +192,10 @@ service cloud.firestore {
     match /bitacora/{id} {
       allow read: if esAdmin();
       allow create: if usuarioActivo()
-        && request.resource.data.usuarioUid == request.auth.uid;
+        && request.resource.data.usuarioUid == request.auth.uid
+        && request.resource.data.accion is string && request.resource.data.accion.size() <= 60
+        && request.resource.data.detalle is string && request.resource.data.detalle.size() <= 2000
+        && request.resource.data.fecha is timestamp;
       allow update, delete: if false; // nadie puede borrar el historial
     }
   }

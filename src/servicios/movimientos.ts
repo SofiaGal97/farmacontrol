@@ -27,13 +27,15 @@ export type NuevoMovimiento = Omit<Movimiento, 'id' | 'fecha' | 'usuarioUid' | '
 export function registrarMovimiento(cambios: WriteBatch, usuario: Usuario, movimiento: NuevoMovimiento) {
   cambios.set(doc(coleccionMovimientos), {
     ...movimiento,
+    detalle: movimiento.detalle.slice(0, 480), // límite de tamaño de las reglas
     fecha: Timestamp.now(),
     usuarioUid: usuario.uid,
     usuarioNombre: usuario.nombre,
   });
 }
 
-function aMovimiento(id: string, datos: DocumentData): Movimiento {
+/** Convierte un documento de Firestore en un Movimiento */
+export function aMovimiento(id: string, datos: DocumentData): Movimiento {
   return {
     id,
     fecha: (datos.fecha as Timestamp).toDate(),

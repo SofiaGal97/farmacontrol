@@ -8,7 +8,7 @@ import InputContrasena from '../componentes/InputContrasena';
 import Modal from '../componentes/Modal';
 import { claseBotonPrincipal, claseBotonSecundario, claseInput, claseTarjeta, claseTituloSeccion } from '../componentes/estilos';
 import type { Rol, Usuario } from '../modelos/tipos';
-import { validarNuevoUsuario } from '../logica/validaciones';
+import { AYUDA_CONTRASENA, validarNuevoUsuario } from '../logica/validaciones';
 import { correoAUsuario } from '../logica/nombreUsuario';
 import { cambiarEstadoUsuario, cambiarRol, crearUsuario } from '../servicios/usuarios';
 import { mostrarAviso } from '../servicios/avisos';
@@ -154,7 +154,7 @@ function ModalCrearUsuario({ onCerrar }: { onCerrar: () => void }) {
             onChange={(e) => setNombreUsuario(e.target.value)}
           />
         </Campo>
-        <Campo etiqueta="Contraseña inicial" obligatorio ayuda="Mínimo 6 caracteres">
+        <Campo etiqueta="Contraseña inicial" obligatorio ayuda={AYUDA_CONTRASENA}>
           <InputContrasena valor={contrasena} onCambiar={setContrasena} autoComplete="new-password" />
         </Campo>
         <Campo etiqueta="Rol" obligatorio>

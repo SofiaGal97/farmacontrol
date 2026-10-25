@@ -15,7 +15,7 @@ import {
   type EstadoConfiguracion,
 } from '../servicios/usuarios';
 import { traducirError } from '../servicios/errores';
-import { validarNuevoUsuario } from '../logica/validaciones';
+import { AYUDA_CONTRASENA, validarNuevoUsuario } from '../logica/validaciones';
 import { mostrarAviso } from '../servicios/avisos';
 import Icono from '../componentes/Icono';
 
@@ -133,7 +133,7 @@ export default function PaginaLogin() {
         )}
 
         {modo !== 'recuperar' && (
-          <Campo etiqueta="Contraseña" obligatorio ayuda={modo === 'primerAdmin' ? 'Mínimo 6 caracteres' : undefined}>
+          <Campo etiqueta="Contraseña" obligatorio ayuda={modo === 'primerAdmin' ? AYUDA_CONTRASENA : undefined}>
             <InputContrasena
               valor={contrasena}
               onCambiar={setContrasena}

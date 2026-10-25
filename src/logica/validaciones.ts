@@ -3,7 +3,8 @@
 // Revisa que los datos estén completos y correctos ANTES de
 // guardarlos. (Las reglas de Firestore vuelven a validar en la nube.)
 // ============================================================
-import type { DatosProducto, DatosProveedor, TipoMedicamento } from '../modelos/tipos';
+import type { DatosProducto, DatosProveedor, Producto, TipoMedicamento } from '../modelos/tipos';
+import { normalizarTexto } from './formato';
 
 const esEnteroNoNegativo = (texto: string) => /^\d+$/.test(texto.trim());
 const esEnteroPositivo = (texto: string) => /^\d+$/.test(texto.trim()) && Number(texto) > 0;
@@ -84,6 +85,24 @@ export function validarProducto(formulario: FormularioProducto): Resultado<Datos
       precioVenta,
     },
   };
+}
+
+/**
+ * Busca si ya existe otro producto igual: mismo nombre y misma
+ * presentación, o el mismo código. Evita registrar dos veces un medicamento.
+ */
+export function buscarDuplicado(datos: DatosProducto, productos: Producto[], idActual?: string): string | null {
+  const nombre = normalizarTexto(datos.nombre);
+  const presentacion = normalizarTexto(datos.presentacion);
+  const codigo = normalizarTexto(datos.codigo);
+
+  for (const p of productos) {
+    if (p.id === idActual) continue;
+    if (codigo && normalizarTexto(p.codigo) === codigo) return `El código "${datos.codigo}" ya lo tiene "${p.nombre}".`;
+    if (normalizarTexto(p.nombre) === nombre && normalizarTexto(p.presentacion) === presentacion)
+      return `Ya existe "${p.nombre}"${p.presentacion ? ` (${p.presentacion})` : ''}. Para ingresar más unidades usa "Entrada de mercadería" en ese producto.`;
+  }
+  return null;
 }
 
 // ------------------------------------------------------------
@@ -170,6 +189,19 @@ export function validarNuevoUsuario(nombre: string, usuario: string, contrasena:
   } else if (!/^[a-z0-9._-]{3,30}$/.test(limpio)) {
     return 'El usuario debe tener de 3 a 30 letras o números, sin espacios ni tildes.';
   }
-  if (contrasena.length < 6) return 'La contraseña debe tener al menos 6 caracteres.';
+  return validarContrasena(contrasena);
+}
+
+/**
+ * Política de contraseñas (recomendación OWASP para sistemas pequeños):
+ * mínimo 8 caracteres, con al menos una letra y un número.
+ */
+export function validarContrasena(contrasena: string): string | null {
+  if (contrasena.length < 8) return 'La contraseña debe tener al menos 8 caracteres.';
+  if (!/[a-zA-ZñÑ]/.test(contrasena) || !/\d/.test(contrasena))
+    return 'La contraseña debe combinar letras y números.';
+  if (/^(.)\1+$/.test(contrasena)) return 'La contraseña no puede ser un solo carácter repetido.';
   return null;
 }
+
+export const AYUDA_CONTRASENA = 'Mínimo 8 caracteres, con letras y números';

@@ -11,6 +11,7 @@ import {
   Timestamp,
   where,
   writeBatch,
+  type DocumentData,
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
@@ -182,25 +183,27 @@ export function escucharVentas(
     consulta,
     (resultado) => {
       alRecibir(
-        resultado.docs.map((d) => {
-          const datos = d.data();
-          return {
-            id: d.id,
-            numero: datos.numero ?? `V-${d.id.slice(0, 6).toUpperCase()}`,
-            fecha: (datos.fecha as Timestamp).toDate(),
-            items: (datos.items as ItemVenta[]).map((i) => ({ ...i, lotes: i.lotes ?? [] })),
-            total: datos.total,
-            ganancia: datos.ganancia,
-            vendedorUid: datos.vendedorUid,
-            vendedorNombre: datos.vendedorNombre,
-            anulada: datos.anulada === true,
-            motivoAnulacion: datos.motivoAnulacion,
-            anuladaPorNombre: datos.anuladaPorNombre,
-            fechaAnulacion: datos.fechaAnulacion ? (datos.fechaAnulacion as Timestamp).toDate() : undefined,
-          };
-        }),
+        resultado.docs.map((d) => aVenta(d.id, d.data())),
       );
     },
     alFallar,
   );
+}
+
+/** Convierte un documento de Firestore en una Venta */
+export function aVenta(id: string, datos: DocumentData): Venta {
+  return {
+    id,
+    numero: datos.numero ?? `V-${id.slice(0, 6).toUpperCase()}`,
+    fecha: (datos.fecha as Timestamp).toDate(),
+    items: (datos.items as ItemVenta[]).map((i) => ({ ...i, lotes: i.lotes ?? [] })),
+    total: datos.total,
+    ganancia: datos.ganancia,
+    vendedorUid: datos.vendedorUid,
+    vendedorNombre: datos.vendedorNombre,
+    anulada: datos.anulada === true,
+    motivoAnulacion: datos.motivoAnulacion,
+    anuladaPorNombre: datos.anuladaPorNombre,
+    fechaAnulacion: datos.fechaAnulacion ? (datos.fechaAnulacion as Timestamp).toDate() : undefined,
+  };
 }

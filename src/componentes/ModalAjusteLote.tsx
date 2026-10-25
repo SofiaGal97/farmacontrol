@@ -71,7 +71,7 @@ export default function ModalAjusteLote({ producto, lote, onCerrar }: Props) {
         <Campo etiqueta="Observación">
           <input
             className={claseInput}
-            placeholder="Opcional"
+            placeholder="Opcional" maxLength={200}
             value={observacion}
             onChange={(e) => setObservacion(e.target.value)}
           />

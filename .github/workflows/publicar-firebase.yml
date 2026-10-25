@@ -29,6 +29,13 @@ jobs:
         with:
           node-version: 22
       - run: npm install
+
+      # Revisa si alguna librería tiene vulnerabilidades conocidas (solo informa)
+      - name: Revisar vulnerabilidades de librerías
+        run: |
+          npm audit --omit=dev --json > "$RUNNER_TEMP/auditoria.json" || true
+          node -e "const a=require(process.argv[1]).metadata.vulnerabilities; console.log('::notice::Auditoria npm (produccion) -> criticas: '+a.critical+', altas: '+a.high+', moderadas: '+a.moderate+', bajas: '+a.low)" "$RUNNER_TEMP/auditoria.json"
+          npm audit --omit=dev --audit-level=high > "$RUNNER_TEMP/detalle.txt" 2>&1 || grep -E "^[a-z@].*|Severity|fix available" "$RUNNER_TEMP/detalle.txt" | head -20 | sed 's/^/::notice::/'
       - run: npm run build
         env:
           VITE_BASE: /
