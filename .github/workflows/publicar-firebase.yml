@@ -40,6 +40,6 @@ jobs:
           rm -f "$RUNNER_TEMP/cuenta.json"
           # Si falla, deja las últimas líneas como aviso visible en GitHub
           if [ "$resultado" -ne 0 ]; then
-            tail -n 15 "$RUNNER_TEMP/salida.txt" | while IFS= read -r linea; do echo "::error::$linea"; done
+            grep -v "npm warn" "$RUNNER_TEMP/salida.txt" | tail -n 20 | while IFS= read -r linea; do echo "::error::$linea"; done
           fi
           exit $resultado
