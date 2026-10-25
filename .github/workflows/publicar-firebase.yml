@@ -35,7 +35,7 @@ jobs:
           printf '%s' "$CUENTA_SERVICIO" > "$RUNNER_TEMP/cuenta.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/cuenta.json"
           set +e
-          npx --yes firebase-tools deploy --only hosting,firestore:rules --project farmacontrol-2cd80 --non-interactive 2>&1 | tee "$RUNNER_TEMP/salida.txt"
+          npx --yes firebase-tools@13.35.1 deploy --only hosting,firestore:rules --project farmacontrol-2cd80 --non-interactive 2>&1 | tee "$RUNNER_TEMP/salida.txt"
           resultado=${PIPESTATUS[0]}
           rm -f "$RUNNER_TEMP/cuenta.json"
           # Si falla, deja las últimas líneas como aviso visible en GitHub
