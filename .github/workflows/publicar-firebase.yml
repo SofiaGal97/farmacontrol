@@ -3,7 +3,9 @@
 # Cada vez que se sube código a la rama "main":
 #   1. Se instalan las librerías y se compila la página.
 #   2. Se publica la página en Firebase Hosting.
-#   3. Se publican las reglas de seguridad (firestore.rules).
+#   3. Se intenta publicar las reglas de seguridad (firestore.rules).
+#      Si la cuenta de servicio no tiene el rol "Firebase Rules Admin",
+#      este paso se omite y las reglas se pegan a mano en la consola.
 # Link: https://farmacontrol-2cd80.web.app
 # Requiere el secreto FIREBASE_SERVICE_ACCOUNT en GitHub
 # (Settings → Secrets and variables → Actions).
@@ -14,6 +16,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+
+env:
+  FIREBASE_TOOLS: firebase-tools@13.35.1
 
 jobs:
   publicar:
@@ -28,18 +33,20 @@ jobs:
         env:
           VITE_BASE: /
 
-      - name: Publicar página y reglas de seguridad
+      - name: Preparar credenciales
         env:
           CUENTA_SERVICIO: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
           printf '%s' "$CUENTA_SERVICIO" > "$RUNNER_TEMP/cuenta.json"
-          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/cuenta.json"
-          set +e
-          npx --yes firebase-tools@13.35.1 deploy --only hosting,firestore:rules --project farmacontrol-2cd80 --non-interactive 2>&1 | tee "$RUNNER_TEMP/salida.txt"
-          resultado=${PIPESTATUS[0]}
-          rm -f "$RUNNER_TEMP/cuenta.json"
-          # Si falla, deja las últimas líneas como aviso visible en GitHub
-          if [ "$resultado" -ne 0 ]; then
-            grep -v "npm warn" "$RUNNER_TEMP/salida.txt" | tail -n 20 | while IFS= read -r linea; do echo "::error::$linea"; done
-          fi
-          exit $resultado
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/cuenta.json" >> "$GITHUB_ENV"
+
+      - name: Publicar página
+        run: npx --yes "$FIREBASE_TOOLS" deploy --only hosting --project farmacontrol-2cd80 --non-interactive
+
+      - name: Publicar reglas de seguridad
+        continue-on-error: true
+        run: npx --yes "$FIREBASE_TOOLS" deploy --only firestore:rules --project farmacontrol-2cd80 --non-interactive
+
+      - name: Borrar credenciales
+        if: always()
+        run: rm -f "$RUNNER_TEMP/cuenta.json"
