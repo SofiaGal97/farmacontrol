@@ -10,6 +10,12 @@ const esEnteroPositivo = (texto: string) => /^\d+$/.test(texto.trim()) && Number
 const esMontoValido = (texto: string) => /^\d+(\.\d{1,2})?$/.test(texto.trim());
 const esFecha = (texto: string) => /^\d{4}-\d{2}-\d{2}$/.test(texto);
 
+/** Hoy en formato AAAA-MM-DD (hora local) */
+function fechaDeHoy(): string {
+  const hoy = new Date();
+  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+}
+
 // ------------------------------------------------------------
 // Producto
 // ------------------------------------------------------------
@@ -116,6 +122,8 @@ export function validarEntrada(formulario: FormularioEntrada): Resultado<Entrada
   if (!numeroLote) return { valido: false, error: 'Escribe el número de lote (viene impreso en la caja).' };
   if (numeroLote.length > 40) return { valido: false, error: 'El número de lote es demasiado largo.' };
   if (!esFecha(formulario.vencimiento)) return { valido: false, error: 'Selecciona la fecha de vencimiento del lote.' };
+  if (formulario.vencimiento < fechaDeHoy())
+    return { valido: false, error: 'Ese lote ya está vencido. No se puede ingresar mercadería vencida.' };
   if (formulario.costoUnitario.trim() !== '' && !esMontoValido(formulario.costoUnitario))
     return { valido: false, error: 'El costo unitario no es válido (ej. 12.50).' };
 

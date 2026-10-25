@@ -73,7 +73,7 @@ export function descargarReporteVentas(
     ]),
     headStyles: { fillColor: AZUL },
     styles: { fontSize: 8, cellPadding: 2 },
-    columnStyles: { 2: { cellWidth: 65 } },
+    columnStyles: { 0: { cellWidth: 28 }, 2: { cellWidth: 60 }, 4: { cellWidth: 22, halign: 'right' }, 5: { cellWidth: 22, halign: 'right' } },
   });
 
   if (resumen.masVendidos.length > 0) {
@@ -230,7 +230,7 @@ export function descargarReporteMovimientos(movimientos: Movimiento[], desde: Da
  */
 export function descargarComprobante(venta: Venta) {
   const ancho = 80;
-  const alto = 95 + venta.items.length * 9;
+  const alto = 80 + venta.items.length * 8 + (venta.anulada ? 6 : 0);
   const pdf = new jsPDF({ unit: 'mm', format: [ancho, alto] });
   const centro = ancho / 2;
   let y = 10;

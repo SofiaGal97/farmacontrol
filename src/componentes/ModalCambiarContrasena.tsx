@@ -29,7 +29,9 @@ export default function ModalCambiarContrasena({ onCerrar }: { onCerrar: () => v
       mostrarAviso('Contraseña actualizada');
       onCerrar();
     } catch (err) {
-      setError(traducirError(err));
+      const codigo = (err as { code?: string })?.code ?? '';
+      const claveMala = codigo === 'auth/invalid-credential' || codigo === 'auth/wrong-password';
+      setError(claveMala ? 'La contraseña actual no es correcta.' : traducirError(err));
     } finally {
       setGuardando(false);
     }
