@@ -1,53 +1,86 @@
 // ============================================================
 // PÁGINA: INVENTARIO
-// Lista de medicamentos con buscador, alertas de stock bajo y de
-// vencimiento, reabastecimiento y (solo admin) agregar/editar/eliminar.
+// Lista de medicamentos con buscador y alertas de stock bajo,
+// lotes por vencer y lotes vencidos. Al tocar un producto se abre
+// su detalle (lotes, entradas, ajustes y kardex).
 // ============================================================
-import { useState, type FormEvent } from 'react';
-import Campo from '../componentes/Campo';
+import { useState } from 'react';
+import Icono from '../componentes/Icono';
 import InsigniasAlerta from '../componentes/InsigniasAlerta';
-import Modal from '../componentes/Modal';
-import { claseBotonPrincipal, claseBotonSecundario, claseInput, claseTituloSeccion } from '../componentes/estilos';
+import { claseBotonPrincipal, claseInput, claseTituloSeccion } from '../componentes/estilos';
 import type { Producto } from '../modelos/tipos';
-import { estadoStock, estadoVencimiento, resumirAlertas } from '../logica/alertas';
-import { formatoFechaTexto, formatoQuetzales, normalizarTexto } from '../logica/formato';
-import { eliminarProducto, reabastecerProducto } from '../servicios/productos';
+import { estadoStock, lotesDeProducto, resumirAlertas } from '../logica/alertas';
+import { formatoQuetzales, normalizarTexto } from '../logica/formato';
+import { eliminarProducto } from '../servicios/productos';
 import { mostrarAviso } from '../servicios/avisos';
-import { useProductos } from '../hooks/useDatos';
+import { useLotes, useProductos } from '../hooks/useDatos';
 import { usePerfil } from '../hooks/useSesion';
 import PaginaProductoFormulario from './PaginaProductoFormulario';
-import Icono from '../componentes/Icono';
+import PaginaDetalleProducto from './PaginaDetalleProducto';
 
 type Filtro = 'todos' | 'stock_bajo' | 'por_vencer' | 'vencidos';
 
-/** Qué se está mostrando: la lista, el formulario de nuevo o el de edición */
-type Vista = { tipo: 'lista' } | { tipo: 'nuevo' } | { tipo: 'editar'; producto: Producto };
+/** Qué se está mostrando: la lista, un detalle o un formulario */
+type Vista =
+  | { tipo: 'lista' }
+  | { tipo: 'nuevo' }
+  | { tipo: 'detalle'; productoId: string }
+  | { tipo: 'editar'; productoId: string };
 
 export default function PaginaInventario() {
   const perfil = usePerfil();
   const esAdmin = perfil.rol === 'admin';
   const { datos: productos, cargando, error } = useProductos();
+  const { datos: lotes } = useLotes();
 
   const [busqueda, setBusqueda] = useState('');
   const [filtro, setFiltro] = useState<Filtro>('todos');
   const [vista, setVista] = useState<Vista>({ tipo: 'lista' });
-  const [aReabastecer, setAReabastecer] = useState<Producto | null>(null);
 
-  // ---- Formularios de agregar / editar ----
-  if (vista.tipo === 'nuevo') {
-    return <PaginaProductoFormulario onTerminar={() => setVista({ tipo: 'lista' })} />;
-  }
-  if (vista.tipo === 'editar') {
-    return <PaginaProductoFormulario productoAEditar={vista.producto} onTerminar={() => setVista({ tipo: 'lista' })} />;
+  const irALista = () => setVista({ tipo: 'lista' });
+
+  // ---- Formulario y detalle (buscamos el producto "fresco" para ver cambios en vivo) ----
+  if (vista.tipo === 'nuevo') return <PaginaProductoFormulario onTerminar={irALista} />;
+
+  if (vista.tipo === 'editar' || vista.tipo === 'detalle') {
+    const producto = productos.find((p) => p.id === vista.productoId);
+    if (!producto) return <BotonVolverSinProducto onVolver={irALista} />;
+
+    if (vista.tipo === 'editar') {
+      return (
+        <PaginaProductoFormulario
+          productoAEditar={producto}
+          onTerminar={() => setVista({ tipo: 'detalle', productoId: producto.id })}
+        />
+      );
+    }
+    return (
+      <PaginaDetalleProducto
+        producto={producto}
+        lotes={lotes}
+        onVolver={irALista}
+        onEditar={() => setVista({ tipo: 'editar', productoId: producto.id })}
+        onEliminar={() => {
+          if (producto.stock > 0 && !confirm(`"${producto.nombre}" todavía tiene ${producto.stock} unidades. ¿Eliminarlo de todos modos?`)) return;
+          if (!confirm(`¿Eliminar "${producto.nombre}" del inventario? Su historial se conserva.`)) return;
+          eliminarProducto(producto, perfil);
+          mostrarAviso(`"${producto.nombre}" eliminado`);
+          irALista();
+        }}
+      />
+    );
   }
 
   // ---- Alertas y filtros ----
-  const alertas = resumirAlertas(productos);
+  const alertas = resumirAlertas(productos, lotes);
+  const conLotePorVencer = new Set(alertas.porVencer.map((l) => l.productoId));
+  const conLoteVencido = new Set(alertas.vencidos.map((l) => l.productoId));
+
   const listaSegunFiltro: Record<Filtro, Producto[]> = {
     todos: productos,
     stock_bajo: alertas.stockBajo,
-    por_vencer: alertas.porVencer,
-    vencidos: alertas.vencidos,
+    por_vencer: productos.filter((p) => conLotePorVencer.has(p.id)),
+    vencidos: productos.filter((p) => conLoteVencido.has(p.id)),
   };
 
   const texto = normalizarTexto(busqueda);
@@ -55,45 +88,24 @@ export default function PaginaInventario() {
     (p) =>
       normalizarTexto(p.nombre).includes(texto) ||
       normalizarTexto(p.componenteActivo).includes(texto) ||
-      normalizarTexto(p.laboratorio).includes(texto),
+      normalizarTexto(p.laboratorio).includes(texto) ||
+      normalizarTexto(p.codigo).includes(texto),
   );
 
-  const manejarEliminar = (producto: Producto) => {
-    if (!confirm(`¿Eliminar "${producto.nombre}" del inventario?`)) return;
-    eliminarProducto(producto, perfil);
-    mostrarAviso(`"${producto.nombre}" eliminado`);
-  };
+  const alternarFiltro = (nuevo: Filtro) => setFiltro(filtro === nuevo ? 'todos' : nuevo);
 
   return (
     <div className="space-y-4">
       {/* Tarjetas de alertas (tocar una filtra la lista) */}
       <div className="grid grid-cols-3 gap-2">
-        <TarjetaAlerta
-          cantidad={alertas.stockBajo.length}
-          texto="Stock bajo"
-          color="red"
-          activa={filtro === 'stock_bajo'}
-          onClick={() => setFiltro(filtro === 'stock_bajo' ? 'todos' : 'stock_bajo')}
-        />
-        <TarjetaAlerta
-          cantidad={alertas.porVencer.length}
-          texto="Por vencer (3 meses)"
-          color="amber"
-          activa={filtro === 'por_vencer'}
-          onClick={() => setFiltro(filtro === 'por_vencer' ? 'todos' : 'por_vencer')}
-        />
-        <TarjetaAlerta
-          cantidad={alertas.vencidos.length}
-          texto="Vencidos"
-          color="rose"
-          activa={filtro === 'vencidos'}
-          onClick={() => setFiltro(filtro === 'vencidos' ? 'todos' : 'vencidos')}
-        />
+        <TarjetaAlerta cantidad={alertas.stockBajo.length} texto="Stock bajo" color="red" activa={filtro === 'stock_bajo'} onClick={() => alternarFiltro('stock_bajo')} />
+        <TarjetaAlerta cantidad={conLotePorVencer.size} texto="Por vencer (3 meses)" color="amber" activa={filtro === 'por_vencer'} onClick={() => alternarFiltro('por_vencer')} />
+        <TarjetaAlerta cantidad={conLoteVencido.size} texto="Con vencidos" color="rose" activa={filtro === 'vencidos'} onClick={() => alternarFiltro('vencidos')} />
       </div>
 
       <input
         type="search"
-        placeholder="Buscar por nombre, componente o laboratorio…"
+        placeholder="Buscar por nombre, componente, laboratorio o código…"
         className={`${claseInput} p-3 shadow-sm`}
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
@@ -101,12 +113,14 @@ export default function PaginaInventario() {
 
       {esAdmin && (
         <button onClick={() => setVista({ tipo: 'nuevo' })} className={claseBotonPrincipal}>
-          <span className="inline-flex items-center justify-center gap-2"><Icono nombre="mas" /> Agregar medicamento</span>
+          <span className="inline-flex items-center justify-center gap-2">
+            <Icono nombre="mas" /> Agregar medicamento
+          </span>
         </button>
       )}
 
       <div className="flex items-center justify-between">
-        <h2 className={claseTituloSeccion + ' mb-0'}>
+        <h2 className={`${claseTituloSeccion} mb-0`}>
           {filtro === 'todos' ? 'Todos los productos' : 'Filtrado por alerta'} ({visibles.length})
         </h2>
         {filtro !== 'todos' && (
@@ -121,14 +135,13 @@ export default function PaginaInventario() {
 
       <div className="space-y-3">
         {visibles.map((producto) => (
-          <TarjetaProducto
+          <button
             key={producto.id}
-            producto={producto}
-            esAdmin={esAdmin}
-            onReabastecer={() => setAReabastecer(producto)}
-            onEditar={() => setVista({ tipo: 'editar', producto })}
-            onEliminar={() => manejarEliminar(producto)}
-          />
+            onClick={() => setVista({ tipo: 'detalle', productoId: producto.id })}
+            className="block w-full text-left"
+          >
+            <TarjetaProducto producto={producto} lotesDelProducto={lotesDeProducto(producto, lotes)} />
+          </button>
         ))}
 
         {!cargando && visibles.length === 0 && (
@@ -141,10 +154,6 @@ export default function PaginaInventario() {
           </p>
         )}
       </div>
-
-      {aReabastecer && (
-        <ModalReabastecer producto={aReabastecer} onCerrar={() => setAReabastecer(null)} />
-      )}
     </div>
   );
 }
@@ -152,6 +161,17 @@ export default function PaginaInventario() {
 // ------------------------------------------------------------
 // Componentes internos de esta página
 // ------------------------------------------------------------
+
+function BotonVolverSinProducto({ onVolver }: { onVolver: () => void }) {
+  return (
+    <div className="space-y-3 py-8 text-center">
+      <p className="text-sm text-slate-500">Este producto ya no existe o fue eliminado.</p>
+      <button onClick={onVolver} className="text-sm font-semibold text-blue-600">
+        Volver al inventario
+      </button>
+    </div>
+  );
+}
 
 const COLORES_ALERTA = {
   red: { normal: 'border-red-200 bg-red-50 text-red-600', activa: 'border-red-500 bg-red-100 ring-2 ring-red-400 text-red-700' },
@@ -178,137 +198,43 @@ function TarjetaAlerta(props: {
   );
 }
 
-function TarjetaProducto(props: {
-  producto: Producto;
-  esAdmin: boolean;
-  onReabastecer: () => void;
-  onEditar: () => void;
-  onEliminar: () => void;
-}) {
-  const { producto, esAdmin } = props;
+function TarjetaProducto({ producto, lotesDelProducto }: { producto: Producto; lotesDelProducto: ReturnType<typeof lotesDeProducto> }) {
   const stock = estadoStock(producto);
-  const vencido = estadoVencimiento(producto) === 'vencido';
 
   return (
-    <div
-      className={`rounded-xl border bg-white p-4 shadow-sm ${
-        vencido || stock === 'agotado' ? 'border-red-300' : 'border-slate-200'
-      }`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <h3 className="font-bold text-slate-800">{producto.nombre}</h3>
-            <span
-              className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
-                producto.tipo === 'Generico' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
-              }`}
-            >
-              {producto.tipo === 'Generico' ? 'Genérico' : 'Ético'}
-            </span>
-          </div>
-          {producto.componenteActivo && <p className="text-xs italic text-slate-500">{producto.componenteActivo}</p>}
-          <p className="text-xs text-slate-400">
-            Lab: {producto.laboratorio} · Vence: {formatoFechaTexto(producto.vencimiento)}
-          </p>
-          <p className="text-xs text-slate-500">
-            Precio: <b>{formatoQuetzales(producto.precioVenta)}</b>
-            {esAdmin && <> · Costo: {formatoQuetzales(producto.precioCosto)}</>}
-          </p>
-          <div className="mt-1.5">
-            <InsigniasAlerta producto={producto} />
-          </div>
-        </div>
-
-        <div className="flex flex-col items-end gap-2">
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm active:bg-slate-50">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <h3 className="font-bold text-slate-800">{producto.nombre}</h3>
           <span
-            className={`rounded-full px-3 py-1 text-xs font-bold ${
-              stock === 'normal' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+              producto.tipo === 'Generico' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
             }`}
           >
-            {producto.stock} u.
+            {producto.tipo === 'Generico' ? 'Genérico' : 'Ético'}
           </span>
-          <button
-            onClick={props.onReabastecer}
-            className="rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-1.5 text-xs font-bold text-blue-600 active:scale-95"
-          >
-            + Stock
-          </button>
+        </div>
+        <p className="truncate text-xs text-slate-500">
+          {[producto.componenteActivo, producto.presentacion, producto.laboratorio].filter(Boolean).join(' · ')}
+        </p>
+        <p className="text-xs text-slate-500">
+          {formatoQuetzales(producto.precioVenta)} · {lotesDelProducto.length} lote{lotesDelProducto.length === 1 ? '' : 's'}
+        </p>
+        <div className="mt-1.5">
+          <InsigniasAlerta producto={producto} lotesDelProducto={lotesDelProducto} />
         </div>
       </div>
 
-      {esAdmin && (
-        <div className="mt-3 flex gap-2 border-t border-slate-100 pt-2">
-          <button onClick={props.onEditar} className="flex-1 rounded-lg py-1.5 text-xs font-semibold text-slate-600 active:bg-slate-100">
-            <span className="inline-flex items-center justify-center gap-1.5"><Icono nombre="editar" className="h-4 w-4" /> Editar</span>
-          </button>
-          <button onClick={props.onEliminar} className="flex-1 rounded-lg py-1.5 text-xs font-semibold text-red-600 active:bg-red-50">
-            <span className="inline-flex items-center justify-center gap-1.5"><Icono nombre="basura" className="h-4 w-4" /> Eliminar</span>
-          </button>
-        </div>
-      )}
+      <div className="flex shrink-0 items-center gap-1">
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-bold ${
+            stock === 'normal' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}
+        >
+          {producto.stock} u.
+        </span>
+        <Icono nombre="siguiente" className="h-4 w-4 text-slate-300" />
+      </div>
     </div>
-  );
-}
-
-function ModalReabastecer({ producto, onCerrar }: { producto: Producto; onCerrar: () => void }) {
-  const perfil = usePerfil();
-  const [cantidad, setCantidad] = useState('');
-  const [nuevoVencimiento, setNuevoVencimiento] = useState('');
-  const [error, setError] = useState('');
-
-  const manejarGuardar = (e: FormEvent) => {
-    e.preventDefault();
-    const unidades = parseInt(cantidad, 10);
-    if (!/^\d+$/.test(cantidad) || unidades <= 0) {
-      setError('Ingresa una cantidad mayor a 0.');
-      return;
-    }
-    reabastecerProducto(producto, unidades, nuevoVencimiento || null, perfil);
-    mostrarAviso(`+${unidades} unidades de ${producto.nombre}`);
-    onCerrar();
-  };
-
-  return (
-    <Modal titulo="Reabastecer stock" onCerrar={onCerrar}>
-      <p className="font-semibold text-slate-700">{producto.nombre}</p>
-      <p className="mb-4 text-xs text-slate-400">
-        Stock actual: <b>{producto.stock} u.</b> · Vence: {formatoFechaTexto(producto.vencimiento)}
-      </p>
-
-      <form onSubmit={manejarGuardar} className="space-y-4">
-        <Campo etiqueta="Unidades que ingresan" obligatorio>
-          <input
-            type="number"
-            inputMode="numeric"
-            min="1"
-            autoFocus
-            className={claseInput}
-            placeholder="Ej. 12"
-            value={cantidad}
-            onChange={(e) => setCantidad(e.target.value)}
-          />
-        </Campo>
-        <Campo etiqueta="Nueva fecha de vencimiento" ayuda="Opcional: llénala si el lote nuevo vence en otra fecha">
-          <input
-            type="date"
-            className={claseInput}
-            value={nuevoVencimiento}
-            onChange={(e) => setNuevoVencimiento(e.target.value)}
-          />
-        </Campo>
-
-        {error && <p className="text-sm font-medium text-red-600">{error}</p>}
-
-        <div className="grid grid-cols-2 gap-3">
-          <button type="button" onClick={onCerrar} className={claseBotonSecundario}>
-            Cancelar
-          </button>
-          <button type="submit" className={claseBotonPrincipal}>
-            Sumar
-          </button>
-        </div>
-      </form>
-    </Modal>
   );
 }

@@ -1,7 +1,7 @@
 // ============================================================
 // CAPA DE LÓGICA: CÁLCULOS DE LOS REPORTES
 // ============================================================
-import type { Producto, Venta } from '../modelos/tipos';
+import type { Lote, Producto, TipoMovimiento, Venta } from '../modelos/tipos';
 import { resumirAlertas, type ResumenAlertas } from './alertas';
 
 // ---------- Periodos de tiempo ----------
@@ -60,6 +60,7 @@ export interface ResumenVentas {
   ingresos: number;
   ganancia: number;
   masVendidos: ProductoMasVendido[];
+  anuladas: number; // ventas anuladas (no suman en los totales)
 }
 
 export function resumirVentas(ventas: Venta[]): ResumenVentas {
@@ -68,7 +69,9 @@ export function resumirVentas(ventas: Venta[]): ResumenVentas {
   let ganancia = 0;
   let unidadesVendidas = 0;
 
-  for (const venta of ventas) {
+  const validas = ventas.filter((v) => !v.anulada);
+
+  for (const venta of validas) {
     ingresos += venta.total;
     ganancia += venta.ganancia;
     for (const item of venta.items) {
@@ -82,7 +85,14 @@ export function resumirVentas(ventas: Venta[]): ResumenVentas {
 
   const masVendidos = [...porProducto.values()].sort((a, b) => b.unidades - a.unidades).slice(0, 5);
 
-  return { cantidadVentas: ventas.length, unidadesVendidas, ingresos, ganancia, masVendidos };
+  return {
+    cantidadVentas: validas.length,
+    unidadesVendidas,
+    ingresos,
+    ganancia,
+    masVendidos,
+    anuladas: ventas.length - validas.length,
+  };
 }
 
 // ---------- Inventario ----------
@@ -95,7 +105,7 @@ export interface ResumenInventario {
   alertas: ResumenAlertas;
 }
 
-export function resumirInventario(productos: Producto[]): ResumenInventario {
+export function resumirInventario(productos: Producto[], lotes: Lote[]): ResumenInventario {
   let totalUnidades = 0;
   let valorCosto = 0;
   let valorVenta = 0;
@@ -112,6 +122,16 @@ export function resumirInventario(productos: Producto[]): ResumenInventario {
     totalUnidades,
     valorCosto,
     valorVenta,
-    alertas: resumirAlertas(productos),
+    alertas: resumirAlertas(productos, lotes),
   };
 }
+
+// ---------- Movimientos (kardex) ----------
+
+export const NOMBRE_MOVIMIENTO: Record<TipoMovimiento, string> = {
+  entrada: 'Entrada',
+  venta: 'Venta',
+  anulacion: 'Anulación',
+  baja: 'Baja',
+  ajuste: 'Ajuste',
+};

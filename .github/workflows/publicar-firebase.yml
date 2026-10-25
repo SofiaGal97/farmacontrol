@@ -29,3 +29,13 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           channelId: live
           projectId: farmacontrol-2cd80
+
+      # Publica las reglas de seguridad de Firestore (archivo firestore.rules)
+      - name: Publicar reglas de seguridad
+        env:
+          CUENTA_SERVICIO: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$CUENTA_SERVICIO" > "$RUNNER_TEMP/cuenta.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/cuenta.json"
+          npx --yes firebase-tools deploy --only firestore:rules --project farmacontrol-2cd80 --non-interactive
+          rm -f "$RUNNER_TEMP/cuenta.json"

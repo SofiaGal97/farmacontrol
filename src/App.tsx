@@ -18,8 +18,7 @@ import PaginaLogin from './paginas/PaginaLogin';
 import PaginaInventario from './paginas/PaginaInventario';
 import PaginaVenta from './paginas/PaginaVenta';
 import PaginaReportes from './paginas/PaginaReportes';
-import PaginaUsuarios from './paginas/PaginaUsuarios';
-import PaginaBitacora from './paginas/PaginaBitacora';
+import PaginaMas from './paginas/PaginaMas';
 import Icono from './componentes/Icono';
 
 export default function App() {
@@ -50,8 +49,7 @@ function Contenido() {
         {pestanaVisible === 'inventario' && <PaginaInventario />}
         {pestanaVisible === 'vender' && <PaginaVenta />}
         {pestanaVisible === 'reportes' && <PaginaReportes />}
-        {pestanaVisible === 'usuarios' && <PaginaUsuarios />}
-        {pestanaVisible === 'bitacora' && <PaginaBitacora />}
+        {pestanaVisible === 'mas' && <PaginaMas />}
       </main>
 
       <MenuInferior rol={perfil.rol} activa={pestanaVisible} onCambiar={setPestana} />

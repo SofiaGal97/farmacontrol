@@ -1,7 +1,7 @@
 import type { Rol } from '../modelos/tipos';
 import Icono, { type NombreIcono } from './Icono';
 
-export type Pestana = 'inventario' | 'vender' | 'reportes' | 'usuarios' | 'bitacora';
+export type Pestana = 'inventario' | 'vender' | 'reportes' | 'mas';
 
 interface OpcionMenu {
   id: Pestana;
@@ -14,8 +14,7 @@ const OPCIONES: OpcionMenu[] = [
   { id: 'inventario', icono: 'paquete', texto: 'Inventario', soloAdmin: false },
   { id: 'vender', icono: 'carrito', texto: 'Vender', soloAdmin: false },
   { id: 'reportes', icono: 'grafica', texto: 'Reportes', soloAdmin: true },
-  { id: 'usuarios', icono: 'usuarios', texto: 'Usuarios', soloAdmin: true },
-  { id: 'bitacora', icono: 'bitacora', texto: 'Bitácora', soloAdmin: true },
+  { id: 'mas', icono: 'menu', texto: 'Más', soloAdmin: true },
 ];
 
 /** Pestañas que puede ver cada rol */

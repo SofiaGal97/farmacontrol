@@ -6,11 +6,14 @@
 // ============================================================
 import { useEffect, useState } from 'react';
 import type { Unsubscribe } from 'firebase/firestore';
-import type { Producto, RegistroBitacora, Usuario, Venta } from '../modelos/tipos';
+import type { Lote, Movimiento, Producto, Proveedor, RegistroBitacora, Usuario, Venta } from '../modelos/tipos';
 import { escucharProductos } from '../servicios/productos';
 import { escucharVentas } from '../servicios/ventas';
 import { escucharUsuarios } from '../servicios/usuarios';
 import { escucharBitacora } from '../servicios/bitacora';
+import { escucharLotes } from '../servicios/lotes';
+import { escucharProveedores } from '../servicios/proveedores';
+import { escucharMovimientosDePeriodo, escucharMovimientosDeProducto } from '../servicios/movimientos';
 import { traducirError } from '../servicios/errores';
 
 interface EstadoDatos<T> {
@@ -57,5 +60,29 @@ export function useBitacora(cantidad = 200) {
   return useSuscripcion<RegistroBitacora>(
     (alRecibir, alFallar) => escucharBitacora(cantidad, alRecibir, alFallar),
     `bitacora-${cantidad}`,
+  );
+}
+
+export function useLotes() {
+  return useSuscripcion<Lote>(escucharLotes, 'lotes');
+}
+
+export function useProveedores() {
+  return useSuscripcion<Proveedor>(escucharProveedores, 'proveedores');
+}
+
+/** Kardex de un producto */
+export function useMovimientosDeProducto(productoId: string) {
+  return useSuscripcion<Movimiento>(
+    (alRecibir, alFallar) => escucharMovimientosDeProducto(productoId, alRecibir, alFallar),
+    `movimientos-${productoId}`,
+  );
+}
+
+/** Movimientos de todos los productos en un rango de fechas */
+export function useMovimientosDePeriodo(desde: Date, hasta: Date) {
+  return useSuscripcion<Movimiento>(
+    (alRecibir, alFallar) => escucharMovimientosDePeriodo(desde, hasta, alRecibir, alFallar),
+    `movimientos-${desde.getTime()}-${hasta.getTime()}`,
   );
 }

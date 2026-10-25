@@ -1,11 +1,11 @@
 // ============================================================
-// SERVICIO DE PRODUCTOS (inventario)
-// Única parte del sistema que lee y escribe la colección "productos".
+// SERVICIO DE PRODUCTOS (catálogo de medicamentos)
+// Única parte del sistema que crea, edita o elimina productos.
+// Las unidades (stock) cambian con entradas, ventas y ajustes de lotes.
 // ============================================================
 import {
   collection,
   doc,
-  increment,
   onSnapshot,
   query,
   Timestamp,
@@ -14,8 +14,9 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import type { DatosProducto, Producto, Usuario } from '../modelos/tipos';
+import type { DatosEntrada, DatosProducto, Producto, Usuario } from '../modelos/tipos';
 import { registrarEnBitacora } from './bitacora';
+import { prepararEntrada } from './lotes';
 import { guardarEnSegundoPlano } from './sincronizacion';
 
 const coleccionProductos = collection(db, 'productos');
@@ -34,7 +35,11 @@ export function escucharProductos(
   return onSnapshot(
     consulta,
     (resultado) => {
-      const productos = resultado.docs.map((d) => ({ id: d.id, ...d.data() }) as Producto);
+      const productos = resultado.docs.map((d) => {
+        const datos = d.data();
+        // Valores por defecto para productos creados antes de agregar estos campos
+        return { presentacion: '', codigo: '', ...datos, id: d.id } as Producto;
+      });
       productos.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
       alRecibir(productos);
     },
@@ -48,67 +53,51 @@ const marcaDeCambio = (usuario: Usuario) => ({
   actualizadoPor: usuario.uid,
 });
 
-/** Registra un medicamento nuevo (solo administrador) */
-export function crearProducto(datos: DatosProducto, usuario: Usuario) {
-  const lote = writeBatch(db);
-  lote.set(doc(coleccionProductos), {
+/**
+ * Registra un medicamento nuevo (solo administrador).
+ * Si trae un primer ingreso de mercadería, se crea su lote en el mismo paso.
+ */
+export function crearProducto(datos: DatosProducto, primeraEntrada: DatosEntrada | null, usuario: Usuario) {
+  const cambios = writeBatch(db);
+  const refProducto = doc(coleccionProductos);
+
+  cambios.set(refProducto, {
     ...datos,
+    stock: primeraEntrada?.cantidad ?? 0,
     activo: true,
     creadoEn: Timestamp.now(),
     ...marcaDeCambio(usuario),
   });
-  registrarEnBitacora(lote, usuario, 'Producto creado', `${datos.nombre} (stock inicial: ${datos.stock})`);
-  guardarEnSegundoPlano(lote, `crear ${datos.nombre}`);
+  registrarEnBitacora(cambios, usuario, 'Producto creado', datos.nombre);
+
+  if (primeraEntrada) {
+    prepararEntrada(cambios, { id: refProducto.id, nombre: datos.nombre }, primeraEntrada, usuario);
+  }
+
+  guardarEnSegundoPlano(cambios, `crear ${datos.nombre}`);
 }
 
 /** Modifica los datos de un medicamento (solo administrador) */
 export function editarProducto(anterior: Producto, datos: DatosProducto, usuario: Usuario) {
-  const lote = writeBatch(db);
-  lote.update(doc(coleccionProductos, anterior.id), { ...datos, ...marcaDeCambio(usuario) });
+  const cambios = writeBatch(db);
+  cambios.update(doc(coleccionProductos, anterior.id), { ...datos, ...marcaDeCambio(usuario) });
 
   // Describimos en la bitácora qué campos cambiaron
-  const cambios = (Object.keys(datos) as (keyof DatosProducto)[])
+  const diferencias = (Object.keys(datos) as (keyof DatosProducto)[])
     .filter((campo) => anterior[campo] !== datos[campo])
-    .map((campo) => `${campo}: ${anterior[campo]} → ${datos[campo]}`);
+    .map((campo) => `${campo}: ${anterior[campo] || '(vacío)'} → ${datos[campo] || '(vacío)'}`);
 
-  registrarEnBitacora(lote, usuario, 'Producto editado', `${datos.nombre}. ${cambios.join('; ') || 'Sin cambios'}`);
-  guardarEnSegundoPlano(lote, `editar ${datos.nombre}`);
-}
-
-/**
- * Suma unidades al inventario (llegó mercadería).
- * Usamos increment(): Firestore SUMA en la nube en lugar de sobrescribir,
- * así dos celulares sin internet no se "pisan" los números.
- */
-export function reabastecerProducto(
-  producto: Producto,
-  cantidad: number,
-  nuevoVencimiento: string | null,
-  usuario: Usuario,
-) {
-  const lote = writeBatch(db);
-  lote.update(doc(coleccionProductos, producto.id), {
-    stock: increment(cantidad),
-    ...marcaDeCambio(usuario),
-    // Solo si el lote nuevo trae otra fecha de vencimiento
-    ...(nuevoVencimiento ? { vencimiento: nuevoVencimiento } : {}),
-  });
-  registrarEnBitacora(
-    lote,
-    usuario,
-    'Reabastecimiento',
-    `${producto.nombre}: +${cantidad} unidades` + (nuevoVencimiento ? `, vence ${nuevoVencimiento}` : ''),
-  );
-  guardarEnSegundoPlano(lote, `reabastecer ${producto.nombre}`);
+  registrarEnBitacora(cambios, usuario, 'Producto editado', `${datos.nombre}. ${diferencias.join('; ') || 'Sin cambios'}`);
+  guardarEnSegundoPlano(cambios, `editar ${datos.nombre}`);
 }
 
 /**
  * "Elimina" un producto. En realidad lo marca como inactivo para no
- * perder el historial de ventas que lo mencionan (eliminación lógica).
+ * perder el historial de ventas y kardex (eliminación lógica).
  */
 export function eliminarProducto(producto: Producto, usuario: Usuario) {
-  const lote = writeBatch(db);
-  lote.update(doc(coleccionProductos, producto.id), { activo: false, ...marcaDeCambio(usuario) });
-  registrarEnBitacora(lote, usuario, 'Producto eliminado', producto.nombre);
-  guardarEnSegundoPlano(lote, `eliminar ${producto.nombre}`);
+  const cambios = writeBatch(db);
+  cambios.update(doc(coleccionProductos, producto.id), { activo: false, ...marcaDeCambio(usuario) });
+  registrarEnBitacora(cambios, usuario, 'Producto eliminado', producto.nombre);
+  guardarEnSegundoPlano(cambios, `eliminar ${producto.nombre}`);
 }

@@ -11,10 +11,18 @@ import Icono, { type NombreIcono } from '../componentes/Icono';
 
 const ICONOS: Record<string, NombreIcono> = {
   Venta: 'dinero',
+  'Venta anulada': 'anular',
   'Producto creado': 'mas',
   'Producto editado': 'editar',
   'Producto eliminado': 'basura',
   Reabastecimiento: 'paquete',
+  'Entrada de mercadería': 'camion',
+  'Baja de producto': 'basura',
+  'Ajuste de inventario': 'ajuste',
+  'Proveedor creado': 'camion',
+  'Proveedor editado': 'camion',
+  'Proveedor activado': 'activado',
+  'Proveedor desactivado': 'bloqueado',
   'Usuario creado': 'usuarioMas',
   'Rol cambiado': 'llave',
   'Usuario activado': 'activado',
