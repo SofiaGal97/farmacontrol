@@ -1,5 +1,9 @@
 # ============================================================
-# PUBLICACIÓN AUTOMÁTICA EN FIREBASE HOSTING (gratis)
+# PUBLICACIÓN AUTOMÁTICA EN FIREBASE (gratis)
+# Cada vez que se sube código a la rama "main":
+#   1. Se instalan las librerías y se compila la página.
+#   2. Se publica la página en Firebase Hosting.
+#   3. Se publican las reglas de seguridad (firestore.rules).
 # Link: https://farmacontrol-2cd80.web.app
 # Requiere el secreto FIREBASE_SERVICE_ACCOUNT en GitHub
 # (Settings → Secrets and variables → Actions).
@@ -23,19 +27,19 @@ jobs:
       - run: npm run build
         env:
           VITE_BASE: /
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          channelId: live
-          projectId: farmacontrol-2cd80
 
-      # Publica las reglas de seguridad de Firestore (archivo firestore.rules)
-      - name: Publicar reglas de seguridad
+      - name: Publicar página y reglas de seguridad
         env:
           CUENTA_SERVICIO: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
           printf '%s' "$CUENTA_SERVICIO" > "$RUNNER_TEMP/cuenta.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/cuenta.json"
-          npx --yes firebase-tools deploy --only firestore:rules --project farmacontrol-2cd80 --non-interactive
+          set +e
+          npx --yes firebase-tools deploy --only hosting,firestore:rules --project farmacontrol-2cd80 --non-interactive 2>&1 | tee "$RUNNER_TEMP/salida.txt"
+          resultado=${PIPESTATUS[0]}
           rm -f "$RUNNER_TEMP/cuenta.json"
+          # Si falla, deja las últimas líneas como aviso visible en GitHub
+          if [ "$resultado" -ne 0 ]; then
+            tail -n 15 "$RUNNER_TEMP/salida.txt" | while IFS= read -r linea; do echo "::error::$linea"; done
+          fi
+          exit $resultado
