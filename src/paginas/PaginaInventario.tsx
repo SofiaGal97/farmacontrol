@@ -40,7 +40,9 @@ export default function PaginaInventario() {
   const irALista = () => setVista({ tipo: 'lista' });
 
   // Al cambiar de pantalla se empieza desde arriba
-  useEffect(() => window.scrollTo(0, 0), [vista]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [vista]);
 
   // ---- Formulario y detalle (buscamos el producto "fresco" para ver cambios en vivo) ----
   if (vista.tipo === 'nuevo') return <PaginaProductoFormulario onTerminar={irALista} />;

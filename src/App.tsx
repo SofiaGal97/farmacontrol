@@ -35,7 +35,9 @@ function Contenido() {
   const [pestana, setPestana] = useState<Pestana>('inventario');
 
   // Al cambiar de pestaña se empieza desde arriba
-  useEffect(() => window.scrollTo(0, 0), [pestana]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pestana]);
 
   if (cargando) return <PantallaCarga />;
   if (!usuarioAuth) return <PaginaLogin />;
