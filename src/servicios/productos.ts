@@ -77,6 +77,19 @@ export function crearProducto(datos: DatosProducto, primeraEntrada: DatosEntrada
   guardarEnSegundoPlano(cambios, `crear ${datos.nombre}`);
 }
 
+/** Nombre de cada campo tal como se muestra en la bitácora */
+const NOMBRE_CAMPO: Record<keyof DatosProducto, string> = {
+  nombre: 'Nombre',
+  componenteActivo: 'Componente',
+  laboratorio: 'Laboratorio',
+  tipo: 'Tipo',
+  presentacion: 'Presentación',
+  codigo: 'Código',
+  stockMinimo: 'Stock mínimo',
+  precioCosto: 'Precio costo',
+  precioVenta: 'Precio público',
+};
+
 /** Modifica los datos de un medicamento (solo administrador) */
 export function editarProducto(anterior: Producto, datos: DatosProducto, usuario: Usuario) {
   const cambios = writeBatch(db);
@@ -85,7 +98,7 @@ export function editarProducto(anterior: Producto, datos: DatosProducto, usuario
   // Describimos en la bitácora qué campos cambiaron
   const diferencias = (Object.keys(datos) as (keyof DatosProducto)[])
     .filter((campo) => anterior[campo] !== datos[campo])
-    .map((campo) => `${campo}: ${anterior[campo] || '(vacío)'} → ${datos[campo] || '(vacío)'}`);
+    .map((campo) => `${NOMBRE_CAMPO[campo]}: ${anterior[campo] || '(vacío)'} → ${datos[campo] || '(vacío)'}`);
 
   registrarEnBitacora(cambios, usuario, 'Producto editado', `${datos.nombre}. ${diferencias.join('; ') || 'Sin cambios'}`);
   guardarEnSegundoPlano(cambios, `editar ${datos.nombre}`);

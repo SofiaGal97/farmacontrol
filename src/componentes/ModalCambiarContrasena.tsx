@@ -20,6 +20,7 @@ export default function ModalCambiarContrasena({ onCerrar }: { onCerrar: () => v
 
   const manejarGuardar = async (e: FormEvent) => {
     e.preventDefault();
+    if (!actual) return setError('Escribe tu contraseña actual.');
     const problema = validarContrasena(nueva);
     if (problema) return setError(problema);
     if (nueva === actual) return setError('La nueva contraseña debe ser diferente a la actual.');

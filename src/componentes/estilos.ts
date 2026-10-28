@@ -4,7 +4,7 @@
 // ============================================================
 
 export const claseInput =
-  'w-full rounded-xl border border-slate-300 bg-white p-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100';
+  'w-full rounded-xl border border-slate-300 bg-white p-2.5 text-base text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100';
 
 export const claseTarjeta = 'rounded-2xl border border-slate-200 bg-white p-4 shadow-sm';
 

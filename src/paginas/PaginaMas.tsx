@@ -3,7 +3,7 @@
 // Agrupa las secciones de administración: proveedores, usuarios
 // y bitácora, para no llenar el menú inferior del celular.
 // ============================================================
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Icono, { type NombreIcono } from '../componentes/Icono';
 import PaginaProveedores from './PaginaProveedores';
 import PaginaUsuarios from './PaginaUsuarios';
@@ -25,6 +25,8 @@ const SECCIONES: { id: Seccion; titulo: string; descripcion: string; icono: Nomb
 
 export default function PaginaMas() {
   const [seccion, setSeccion] = useState<Seccion | null>(null);
+
+  useEffect(() => window.scrollTo(0, 0), [seccion]);
 
   if (seccion) {
     const actual = SECCIONES.find((s) => s.id === seccion)!;

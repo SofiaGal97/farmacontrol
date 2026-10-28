@@ -30,6 +30,8 @@ export default function ModalAjusteLote({ producto, lote, onCerrar }: Props) {
     if (!/^\d+$/.test(nuevaCantidad)) return setError('Escribe la nueva cantidad (0 o más).');
     const cantidad = parseInt(nuevaCantidad, 10);
     if (cantidad === lote.cantidad) return setError('La cantidad es la misma; no hay nada que ajustar.');
+    if ((motivo === 'Vencido' || motivo === 'Dañado') && cantidad > lote.cantidad)
+      return setError('Por vencido o dañado solo se pueden quitar unidades, no agregar.');
     if (motivo === 'Otro' && !observacion.trim()) return setError('Explica el motivo en la observación.');
     if (!confirm(`¿Cambiar el lote ${lote.numeroLote} de ${lote.cantidad} a ${cantidad} unidades?`)) return;
 

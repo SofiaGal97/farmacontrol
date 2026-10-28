@@ -29,7 +29,7 @@ export default function InputContrasena({ valor, onCambiar, autoComplete = 'curr
       <button
         type="button"
         onClick={() => setVisible(!visible)}
-        className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-lg text-slate-500"
+        className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-500"
         aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
         title={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
       >

@@ -6,7 +6,7 @@
 //   sin permiso → mensaje de acceso denegado
 //   con sesión → encabezado + página elegida + menú inferior
 // ============================================================
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SesionProvider, useSesion } from './hooks/useSesion';
 import Avisos from './componentes/Avisos';
 import Encabezado from './componentes/Encabezado';
@@ -33,6 +33,9 @@ export default function App() {
 function Contenido() {
   const { usuarioAuth, perfil, cargando } = useSesion();
   const [pestana, setPestana] = useState<Pestana>('inventario');
+
+  // Al cambiar de pestaña se empieza desde arriba
+  useEffect(() => window.scrollTo(0, 0), [pestana]);
 
   if (cargando) return <PantallaCarga />;
   if (!usuarioAuth) return <PaginaLogin />;

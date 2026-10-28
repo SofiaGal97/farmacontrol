@@ -21,46 +21,48 @@ export default function Encabezado({ perfil }: { perfil: Usuario }) {
   };
 
   return (
-    <header className="sticky top-0 z-20 bg-blue-600 text-white shadow-md">
-      <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
-        <div>
-          <h1 className="flex items-center gap-1.5 text-lg font-bold leading-tight">
-            <Icono nombre="logo" className="h-5 w-5" /> FarmaControl
-          </h1>
-          <p className="text-xs opacity-90">
-            {perfil.nombre} · {perfil.rol === 'admin' ? 'Administrador' : 'Empleado'}
-          </p>
+    <>
+      <header className="sticky top-0 z-20 bg-blue-600 text-white shadow-md">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+          <div>
+            <h1 className="flex items-center gap-1.5 text-lg font-bold leading-tight">
+              <Icono nombre="logo" className="h-5 w-5" /> FarmaControl
+            </h1>
+            <p className="text-xs opacity-90">
+              {perfil.nombre} · {perfil.rol === 'admin' ? 'Administrador' : 'Empleado'}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCambiandoContrasena(true)}
+              className="rounded-lg bg-white/15 px-2.5 py-1.5 text-xs font-bold active:bg-white/25"
+              aria-label="Cambiar mi contraseña"
+            >
+              <Icono nombre="llave" className="h-4 w-4" />
+            </button>
+            <button
+              onClick={manejarSalir}
+              className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold active:bg-white/25"
+            >
+              Salir
+            </button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setCambiandoContrasena(true)}
-            className="rounded-lg bg-white/15 px-2.5 py-1.5 text-xs font-bold active:bg-white/25"
-            aria-label="Cambiar mi contraseña"
-          >
-            <Icono nombre="llave" className="h-4 w-4" />
-          </button>
-          <button
-            onClick={manejarSalir}
-            className="rounded-lg bg-white/15 px-3 py-1.5 text-xs font-bold active:bg-white/25"
-          >
-            Salir
-          </button>
-        </div>
-      </div>
 
-      {/* Estado de conexión y sincronización */}
-      <div
-        className={`px-4 py-1 text-center text-[11px] font-semibold ${
-          !enLinea ? 'bg-amber-500' : pendientes > 0 ? 'bg-blue-800' : 'bg-blue-700'
-        }`}
-      >
-        {!enLinea
-          ? `Sin internet — trabajando en este dispositivo${pendientes > 0 ? ` (${pendientes} cambio(s) por subir)` : ''}`
-          : pendientes > 0
-            ? `Subiendo ${pendientes} cambio(s) a la nube…`
-            : 'Conectado y sincronizado'}
-      </div>
+        {/* Estado de conexión y sincronización */}
+        <div
+          className={`px-4 py-1 text-center text-[11px] font-semibold ${
+            !enLinea ? 'bg-amber-500' : pendientes > 0 ? 'bg-blue-800' : 'bg-blue-700'
+          }`}
+        >
+          {!enLinea
+            ? `Sin internet — trabajando en este dispositivo${pendientes > 0 ? ` (${pendientes} cambio(s) por subir)` : ''}`
+            : pendientes > 0
+              ? `Subiendo ${pendientes} cambio(s) a la nube…`
+              : 'Conectado y sincronizado'}
+        </div>
+      </header>
       {cambiandoContrasena && <ModalCambiarContrasena onCerrar={() => setCambiandoContrasena(false)} />}
-    </header>
+    </>
   );
 }

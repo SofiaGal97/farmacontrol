@@ -15,7 +15,6 @@ const ICONOS: Record<string, NombreIcono> = {
   'Producto creado': 'mas',
   'Producto editado': 'editar',
   'Producto eliminado': 'basura',
-  Reabastecimiento: 'paquete',
   'Entrada de mercadería': 'camion',
   'Baja de producto': 'basura',
   'Ajuste de inventario': 'ajuste',

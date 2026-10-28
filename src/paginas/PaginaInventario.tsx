@@ -4,7 +4,7 @@
 // lotes por vencer y lotes vencidos. Al tocar un producto se abre
 // su detalle (lotes, entradas, ajustes y kardex).
 // ============================================================
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Icono from '../componentes/Icono';
 import InsigniasAlerta from '../componentes/InsigniasAlerta';
 import { claseBotonPrincipal, claseInput, claseTituloSeccion } from '../componentes/estilos';
@@ -38,6 +38,9 @@ export default function PaginaInventario() {
   const [vista, setVista] = useState<Vista>({ tipo: 'lista' });
 
   const irALista = () => setVista({ tipo: 'lista' });
+
+  // Al cambiar de pantalla se empieza desde arriba
+  useEffect(() => window.scrollTo(0, 0), [vista]);
 
   // ---- Formulario y detalle (buscamos el producto "fresco" para ver cambios en vivo) ----
   if (vista.tipo === 'nuevo') return <PaginaProductoFormulario onTerminar={irALista} />;

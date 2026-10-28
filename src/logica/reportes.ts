@@ -34,6 +34,8 @@ export function rangoDePeriodo(periodo: Periodo, desdeTexto = '', hastaTexto = '
       const [a2, m2, d2] = (hastaTexto || '').split('-').map(Number);
       const desde = a1 ? new Date(a1, m1 - 1, d1) : hoy;
       const hasta = a2 ? new Date(a2, m2 - 1, d2 + 1) : manana;
+      // Si las fechas se escribieron al revés, se intercambian
+      if (desde >= hasta) return { desde: sumarDias(hasta, -1), hasta: sumarDias(desde, 1) };
       return { desde, hasta };
     }
   }

@@ -5,8 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // Configuración de Vite (la herramienta que compila y sirve la página).
 export default defineConfig({
-  // Carpeta donde vivirá la página publicada.
-  // En GitHub Pages es "/nombre-del-repositorio/"; el flujo de despliegue lo define solo.
+  // Carpeta donde vive la página publicada (en Firebase Hosting es la raíz "/").
   base: process.env.VITE_BASE ?? '/',
 
   plugins: [
