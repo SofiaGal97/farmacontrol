@@ -33,6 +33,7 @@ export default function ModalAjusteLote({ producto, lote, onCerrar }: Props) {
     if ((motivo === 'Vencido' || motivo === 'Dañado') && cantidad > lote.cantidad)
       return setError('Por vencido o dañado solo se pueden quitar unidades, no agregar.');
     if (motivo === 'Otro' && !observacion.trim()) return setError('Explica el motivo en la observación.');
+    setError('');
     if (!confirm(`¿Cambiar el lote ${lote.numeroLote} de ${lote.cantidad} a ${cantidad} unidades?`)) return;
 
     ajustarLote(producto, lote, cantidad, motivo, observacion.trim(), perfil);
